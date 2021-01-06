@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/davidyap2002/user-go/api"
 	"github.com/davidyap2002/user-go/directives"
 	"github.com/davidyap2002/user-go/graph"
 	"github.com/davidyap2002/user-go/graph/generated"
@@ -18,7 +21,11 @@ import (
 const defaultPort = "8080"
 
 func main() {
-	// migration.MigrateTable()
+
+	_, err := api.CheckEmail(context.Background(), "davidyasagasgasgp11les@gmail.com")
+
+	fmt.Println(err)
+	// migration.MigrateTable()	
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort

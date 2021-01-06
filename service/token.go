@@ -23,10 +23,16 @@ type UserClaims struct {
 	jwt.StandardClaims
 }
 
+//ResetPasswordClaim Reset Password Claims (Token)
+type ResetPasswordClaim struct {
+	UserID int `json:"user_id"`
+	jwt.StandardClaims
+}
+
 var jwtSecret = []byte(os.Getenv("SECRET"))
 
-//CreateToken Create Token
-func CreateToken(ctx context.Context, email string, password string) (*model.TokenData, error) {
+//UserTokenCreate Create Token
+func UserTokenCreate(ctx context.Context, email string, password string) (*model.TokenData, error) {
 	checkUser, err := UserGetByEmail(ctx, email, nil)
 
 	if err == gorm.ErrRecordNotFound {
@@ -74,8 +80,8 @@ func CreateToken(ctx context.Context, email string, password string) (*model.Tok
 	}, nil
 }
 
-//ValidateToken Validate Token
-func ValidateToken(t string) (*jwt.Token, error) {
+//UserTokenValidate Validate Token
+func UserTokenValidate(t string) (*jwt.Token, error) {
 	token, _ := jwt.ParseWithClaims(t, &UserClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, err := token.Method.(*jwt.SigningMethodHMAC); !err {
 			return nil, fmt.Errorf("There was an error")
@@ -84,4 +90,40 @@ func ValidateToken(t string) (*jwt.Token, error) {
 	})
 
 	return token, nil
+}
+
+//ResetPasswordTokenCreate Reset Password Token Create
+func ResetPasswordTokenCreate(ctx context.Context, email string) (string, error) {
+	checkUser, err := UserGetByEmail(ctx, email, nil)
+
+	if err == gorm.ErrRecordNotFound {
+		fmt.Println(err)
+		return "Failed", &gqlerror.Error{
+			Message: "Email Not Found",
+			Extensions: map[string]interface{}{
+				"code": "DENIED",
+			},
+		}
+	}
+
+	signingMethod := jwt.SigningMethodHS256
+	expiredTime := time.Now().AddDate(0, 0, 1).UnixNano() / int64(time.Millisecond)
+
+	customClaim := ResetPasswordClaim{
+		UserID: checkUser.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expiredTime,
+		},
+	}
+
+	token := jwt.NewWithClaims(signingMethod, customClaim)
+
+	signedToken, err := token.SignedString(jwtSecret)
+
+	if err != nil {
+		fmt.Println(err)
+		return "Failed", gqlerror.Errorf(fmt.Sprintf("%s", err))
+	}
+
+	return signedToken, nil
 }

@@ -22,7 +22,7 @@ func IsLogin(ctx context.Context, obj interface{}, next graphql.Resolver) (inter
 				"code": "UNAUTHENTICATE",
 			},
 		}
-	}
+	} 
 
 	_, err := service.UserGetByID(ctx, user.ID, nil)
 

@@ -38,7 +38,7 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 
-			tokenBeforeClaims, err := service.ValidateToken(strings.Trim(auth[1], " "))
+			tokenBeforeClaims, err := service.UserTokenValidate(strings.Trim(auth[1], " "))
 
 			if err != nil {
 				http.Error(w, "Invalid Token", http.StatusForbidden)
