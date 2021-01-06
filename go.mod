@@ -1,4 +1,4 @@
-// +heroku goVersion go1.15
+// +heroku goVersion go1.13
 module github.com/davidyap2002/user-go
 
 go 1.15
