@@ -1,1 +1,1 @@
-user-go: bin/user-go
+user-go: bin/github.com/davidyap2002/user-go
