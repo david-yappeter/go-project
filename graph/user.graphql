@@ -1,0 +1,52 @@
+type User {
+    id: Int!
+    name: String!
+    password: String!
+    email: String!
+    address: String
+    telephone_number: String
+    created_at: String!
+    updated_at: String
+    deleted_at: String
+    auth_digit: String
+}
+
+type UserPagination {
+    limit: Int
+    page: Int 
+    asc: Boolean 
+    sort_by: String
+    filter: [Int]
+    scopes: Boolean
+    total_data: Int! @goField(forceResolver: true)
+    nodes: [User] @goField(forceResolver: true)
+}
+
+input NewUser {
+    name: String!
+    password: String!
+    email: String!
+    address: String
+    telephone_number: String
+}
+
+input UpdateUser {
+    id: Int!
+    name: String!
+    password: String!
+    email: String!
+    address: String
+    telephone_number: String
+    created_at: String!
+    updated_at: String
+    deleted_at: String
+    auth_digit: String
+}
+
+type UserOps {
+    create(input: NewUser!): User! @goField(forceResolver: true)
+    update(input: UpdateUser!): User! @goField(forceResolver: true) @isLogin
+    soft_delete(id: Int!): String! @goField(forceResolver: true) @isLogin
+    restore_delete(id: Int!): String! @goField(forceResolver: true) @isLogin
+    delete(id: Int!): String! @goField(forceResolver: true) @isLogin
+}

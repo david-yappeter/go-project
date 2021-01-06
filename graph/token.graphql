@@ -1,0 +1,8 @@
+type TokenData {
+    type: String!
+    token: String!
+}
+
+type TokenOps {
+    login(email: String!, password: String!): TokenData! @goField(forceResolver: true)
+}
