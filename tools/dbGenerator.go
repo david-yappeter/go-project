@@ -34,10 +34,3 @@ func StatusFilter(query *gorm.DB, filter []int) {
 		*query = *query.Where("status IN (?)", filter)
 	}
 }
-
-//DeletedAt Filtering By Deleted At
-func DeletedAt(query *gorm.DB, scopes *bool) {
-	if scopes != nil && *scopes == true {
-		query.Where("deleted_at <> NULL")
-	}
-}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/davidyap2002/user-go/api"
 	config "github.com/davidyap2002/user-go/config"
@@ -45,7 +44,7 @@ func UserCreate(ctx context.Context, input model.NewUser) (*model.User, error) {
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
 
-	timeNow := time.Now().UTC().Format("2006-01-02 15:04:05")
+	timeNow := tools.TimeUTC()
 
 	user := model.User{
 		Address:         input.Address,
@@ -73,7 +72,7 @@ func UserCreateBatch(ctx context.Context, input []*model.NewUser) ([]*model.User
 	defer sqlDB.Close()
 
 	var userBatch []*model.User
-	timeNow := time.Now().UTC().Format("2006-01-02 15:04:05")
+	timeNow := tools.TimeUTC()
 
 	for _, val := range input {
 		user := model.User{
@@ -104,7 +103,7 @@ func UserUpdate(ctx context.Context, input model.UpdateUser) (*model.User, error
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
 
-	timeNow := time.Now().UTC().Format("2006-01-02 15:04:05")
+	timeNow := tools.TimeUTC()
 	user := model.User{
 		Address:         input.Address,
 		AuthDigit:       input.AuthDigit,
@@ -141,7 +140,7 @@ func UserSoftDelete(ctx context.Context, id int) (string, error) {
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
 
-	timeNow := time.Now().UTC().Format("2006-01-02 15:04:05")
+	timeNow := tools.TimeUTC()
 	err := db.Table("user").Where("id = ?", id).Update("deleted_at", timeNow).Error
 
 	if err != nil {
@@ -296,4 +295,36 @@ func UserTotalDataPagination(ctx context.Context, limit int, page int, ascending
 	}
 
 	return int(count), nil
+}
+
+//UserGetByToken UserGetByToken
+func UserGetByToken(ctx context.Context) (*model.User, error) {
+	userByToken := ForContext(ctx)
+
+	if userByToken == nil {
+		fmt.Println("Invalid Token")
+		return nil, &gqlerror.Error{
+			Message: "Invalid Token",
+			Extensions: map[string]interface{}{
+				"code": "UNAUTHENTICATE",
+			},
+		}
+	}
+
+	user, err := UserGetByID(ctx, userByToken.ID, nil)
+
+	if err == gorm.ErrRecordNotFound {
+		fmt.Println("User Not Found")
+		return nil, &gqlerror.Error{
+			Message: "User Not Found",
+			Extensions: map[string]interface{}{
+				"code": "BAD REQUEST",
+			},
+		}
+	} else if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return user, nil
 }

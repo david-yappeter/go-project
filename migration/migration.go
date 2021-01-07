@@ -12,6 +12,8 @@ func MigrateTable() {
 	defer sqlDB.Close()
 
 	var user model.User
+	var fileUpload model.FileUpload
 
 	db.AutoMigrate(&user)
+	db.AutoMigrate(&fileUpload)
 }

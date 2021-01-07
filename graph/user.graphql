@@ -9,6 +9,7 @@ type User {
     updated_at: String
     deleted_at: String
     auth_digit: String
+    files: [FileUpload] @goField(forceResolver: true)
 }
 
 type UserPagination {

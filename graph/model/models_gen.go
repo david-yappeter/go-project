@@ -2,6 +2,23 @@
 
 package model
 
+type FileUploadOps struct {
+	UploadSingle *FileUpload   `json:"upload_single"`
+	UploadBatch  []*FileUpload `json:"upload_batch"`
+}
+
+type FileUploadPagination struct {
+	Limit     *int          `json:"limit"`
+	Page      *int          `json:"page"`
+	Asc       *bool         `json:"asc"`
+	SortBy    *string       `json:"sort_by"`
+	Filter    []*int        `json:"filter"`
+	Scopes    *bool         `json:"scopes"`
+	UserID    *int          `json:"user_id"`
+	TotalData int           `json:"total_data"`
+	Nodes     []*FileUpload `json:"nodes"`
+}
+
 type NewUser struct {
 	Name            string  `json:"name"`
 	Password        string  `json:"password"`

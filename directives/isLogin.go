@@ -3,7 +3,6 @@ package directives
 import (
 	"context"
 
-	"github.com/davidyap2002/user-go/middleware"
 	"github.com/davidyap2002/user-go/service"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -13,7 +12,7 @@ import (
 
 //IsLogin IsLogin Directive
 func IsLogin(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	user := middleware.ForContext(ctx)
+	user := service.ForContext(ctx)
 
 	if user == nil {
 		return nil, &gqlerror.Error{
@@ -22,7 +21,7 @@ func IsLogin(ctx context.Context, obj interface{}, next graphql.Resolver) (inter
 				"code": "UNAUTHENTICATE",
 			},
 		}
-	} 
+	}
 
 	_, err := service.UserGetByID(ctx, user.ID, nil)
 

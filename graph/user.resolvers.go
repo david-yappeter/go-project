@@ -6,11 +6,16 @@ package graph
 import (
 	"context"
 
+	"github.com/davidyap2002/user-go/dataloader"
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/graph/model"
 	"github.com/davidyap2002/user-go/service"
 	"github.com/davidyap2002/user-go/tools"
 )
+
+func (r *userResolver) Files(ctx context.Context, obj *model.User) ([]*model.FileUpload, error) {
+	return dataloader.For(ctx).FileUploadByID.Load(obj.ID)
+}
 
 func (r *userOpsResolver) Create(ctx context.Context, obj *model.UserOps, input model.NewUser) (*model.User, error) {
 	return service.UserCreate(ctx, input)
@@ -42,6 +47,9 @@ func (r *userPaginationResolver) Nodes(ctx context.Context, obj *model.UserPagin
 	return service.UserPagination(ctx, limit, page, asc, sort, status, obj.Scopes)
 }
 
+// User returns generated.UserResolver implementation.
+func (r *Resolver) User() generated.UserResolver { return &userResolver{r} }
+
 // UserOps returns generated.UserOpsResolver implementation.
 func (r *Resolver) UserOps() generated.UserOpsResolver { return &userOpsResolver{r} }
 
@@ -50,5 +58,6 @@ func (r *Resolver) UserPagination() generated.UserPaginationResolver {
 	return &userPaginationResolver{r}
 }
 
+type userResolver struct{ *Resolver }
 type userOpsResolver struct{ *Resolver }
 type userPaginationResolver struct{ *Resolver }

@@ -1,0 +1,27 @@
+type FileUpload {
+    id: ID!
+    file_id: String!
+    created_at: String!
+    updated_at: String
+    deleted_at: String
+    user_id: ID!
+    view_link: String! @goField(forceResolver: true)
+    download_link: String! @goField(forceResolver: true)
+}
+
+type FileUploadPagination {
+    limit: Int
+    page: Int
+    asc: Boolean
+    sort_by: String
+    filter: [Int]
+    scopes: Boolean
+    user_id: ID
+    total_data: Int! @goField(forceResolver: true)
+    nodes: [FileUpload] @goField(forceResolver: true)
+}
+
+type FileUploadOps {
+    upload_single(file: Upload!): FileUpload! @goField(forceResolver: true) @isLogin
+    upload_batch(files: [Upload!]!): [FileUpload!]! @goField(forceResolver: true) @isLogin
+}

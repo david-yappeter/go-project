@@ -1,11 +1,9 @@
-package middleware
+package service
 
 import (
 	"context"
 	"net/http"
 	"strings"
-
-	"github.com/davidyap2002/user-go/service"
 )
 
 var userCtxKey = &contextKey{"user"}
@@ -38,14 +36,14 @@ func Middleware() func(http.Handler) http.Handler {
 				return
 			}
 
-			tokenBeforeClaims, err := service.UserTokenValidate(strings.Trim(auth[1], " "))
+			tokenBeforeClaims, err := UserTokenValidate(strings.Trim(auth[1], " "))
 
 			if err != nil {
 				http.Error(w, "Invalid Token", http.StatusForbidden)
 				return
 			}
 
-			claims, ok := tokenBeforeClaims.Claims.(*service.UserClaims)
+			claims, ok := tokenBeforeClaims.Claims.(*UserClaims)
 			if !ok && !tokenBeforeClaims.Valid {
 				http.Error(w, "Invalid Token", http.StatusForbidden)
 				return
@@ -61,7 +59,7 @@ func Middleware() func(http.Handler) http.Handler {
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) *service.UserClaims {
-	raw, _ := ctx.Value(userCtxKey).(*service.UserClaims)
+func ForContext(ctx context.Context) *UserClaims {
+	raw, _ := ctx.Value(userCtxKey).(*UserClaims)
 	return raw
 }

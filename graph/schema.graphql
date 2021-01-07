@@ -3,13 +3,20 @@
 # https://gqlgen.com/getting-started/
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 directive @isLogin on FIELD_DEFINITION
+scalar Upload
 
 type Query {
   user(id: Int!, scopes: Boolean): User @goField(forceResolver: true) @isLogin
   users(limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): UserPagination! @goField(forceResolver: true) @isLogin
+
+  file(id: Int!, scopes: Boolean): FileUpload @goField(forceResolver: true) @isLogin
+  files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
+
+  me: User! @goField(forceResolver: true) @isLogin
 }
 
 type Mutation {
-  user: UserOps! @goField(forceResolver: true)
+  file: FileUploadOps! @goField(forceResolver: true)
   token: TokenOps @goField(forceResolver: true)
+  user: UserOps! @goField(forceResolver: true)
 }
