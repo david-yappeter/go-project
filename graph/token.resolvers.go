@@ -12,7 +12,7 @@ import (
 )
 
 func (r *tokenOpsResolver) Login(ctx context.Context, obj *model.TokenOps, email string, password string) (*model.TokenData, error) {
-	return service.UserTokenCreate(ctx, email, password)
+	return service.UserTokenCreateByEmail(ctx, email, password)
 }
 
 // TokenOps returns generated.TokenOpsResolver implementation.

@@ -31,8 +31,8 @@ type ResetPasswordClaim struct {
 
 var jwtSecret = []byte(os.Getenv("SECRET"))
 
-//UserTokenCreate Create Token
-func UserTokenCreate(ctx context.Context, email string, password string) (*model.TokenData, error) {
+//UserTokenCreateByEmail Create Token
+func UserTokenCreateByEmail(ctx context.Context, email string, password string) (*model.TokenData, error) {
 	checkUser, err := UserGetByEmail(ctx, email, nil)
 
 	if err == gorm.ErrRecordNotFound {
@@ -126,4 +126,43 @@ func ResetPasswordTokenCreate(ctx context.Context, email string) (string, error)
 	}
 
 	return signedToken, nil
+}
+
+//CreateTokenGoogle Create Token By Google Sign-in
+func CreateTokenGoogle(ctx context.Context, googleID string) (*model.TokenData, error) {
+	checkUser, err := UserGetByGoogleID(ctx, googleID, nil)
+
+	if err == gorm.ErrRecordNotFound {
+		fmt.Println(err)
+		return nil, &gqlerror.Error{
+			Message: "Email Not Found",
+			Extensions: map[string]interface{}{
+				"code": "DENIED",
+			},
+		}
+	}
+
+	signingMethod := jwt.SigningMethodHS256
+	expiredTime := time.Now().AddDate(0, 0, 1).UnixNano() / int64(time.Millisecond)
+
+	customClaim := UserClaims{
+		ID: checkUser.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expiredTime,
+		},
+	}
+
+	token := jwt.NewWithClaims(signingMethod, customClaim)
+
+	signedToken, err := token.SignedString(jwtSecret)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, gqlerror.Errorf(fmt.Sprintf("%s", err))
+	}
+
+	return &model.TokenData{
+		Type:  "Bearer",
+		Token: signedToken,
+	}, nil
 }

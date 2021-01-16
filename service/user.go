@@ -328,3 +328,73 @@ func UserGetByToken(ctx context.Context) (*model.User, error) {
 
 	return user, nil
 }
+
+//UserCreateByGoogleID Create User By Google ID
+func UserCreateByGoogleID(ctx context.Context, googleID string, name string, email string, locationCode string) (*model.User, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	timeNow := tools.TimeUTC()
+
+	user := model.User{
+		GoogleID:     &googleID,
+		Name:         name,
+		Email:        email,
+		LocationCode: &locationCode,
+		CreatedAt:    timeNow,
+	}
+
+	err := db.Table("user").Create(&user).Error
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+//UserGetByGoogleID Get User By Google ID
+func UserGetByGoogleID(ctx context.Context, googleID string, scopes *bool) (*model.User, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	var user model.User
+
+	query := db.Table("user")
+
+	tools.DeletedAt(query, scopes)
+
+	err := query.Where("google_id = ?", googleID).First(&user).Error
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+//UserFindOrCreateByGoogleID Find Or Create By GoogleID
+func UserFindOrCreateByGoogleID(ctx context.Context, googleID string, name string, email string, locationCode string) (*model.User, error) {
+	scopes := true
+	findUser, err := UserGetByGoogleID(ctx, googleID, &scopes)
+
+	if err != nil && err != gorm.ErrRecordNotFound {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if findUser == nil {
+		findUser, err = UserCreateByGoogleID(ctx, googleID, name, email, locationCode)
+
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+	}
+
+	return findUser, nil
+}

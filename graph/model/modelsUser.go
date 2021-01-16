@@ -12,4 +12,6 @@ type User struct {
 	UpdatedAt       *string `gorm:"type:timestamp;null;default:null"`
 	DeletedAt       *string `gorm:"type:timestamp;null;default:null"`
 	AuthDigit       *string `gorm:"type:timestamp;null;default:null"`
+	GoogleID        *string `gorm:"type:text;null;default:null"`
+	LocationCode    *string `gorm:"type:text;null;default:null"`
 }
