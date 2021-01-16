@@ -36,6 +36,8 @@ func main() {
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
+	router.HandleFunc("/auth/google", service.GoogleOauth2RedirectLink)
+	router.HandleFunc("/auth/google/callback", service.GoogleOauth2ParseCallback)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

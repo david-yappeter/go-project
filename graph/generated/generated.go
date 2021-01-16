@@ -110,7 +110,9 @@ type ComplexityRoot struct {
 		DeletedAt       func(childComplexity int) int
 		Email           func(childComplexity int) int
 		Files           func(childComplexity int) int
+		GoogleID        func(childComplexity int) int
 		ID              func(childComplexity int) int
+		LocationCode    func(childComplexity int) int
 		Name            func(childComplexity int) int
 		Password        func(childComplexity int) int
 		TelephoneNumber func(childComplexity int) int
@@ -481,12 +483,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Files(childComplexity), true
 
+	case "User.google_id":
+		if e.complexity.User.GoogleID == nil {
+			break
+		}
+
+		return e.complexity.User.GoogleID(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
 		}
 
 		return e.complexity.User.ID(childComplexity), true
+
+	case "User.location_code":
+		if e.complexity.User.LocationCode == nil {
+			break
+		}
+
+		return e.complexity.User.LocationCode(childComplexity), true
 
 	case "User.name":
 		if e.complexity.User.Name == nil {
@@ -765,6 +781,8 @@ type TokenOps {
     updated_at: String
     deleted_at: String
     auth_digit: String
+    google_id: String
+    location_code: String
     files: [FileUpload] @goField(forceResolver: true)
 }
 
@@ -2766,6 +2784,70 @@ func (ec *executionContext) _User_auth_digit(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.AuthDigit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_google_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GoogleID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_location_code(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LocationCode, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5030,6 +5112,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_deleted_at(ctx, field, obj)
 		case "auth_digit":
 			out.Values[i] = ec._User_auth_digit(ctx, field, obj)
+		case "google_id":
+			out.Values[i] = ec._User_google_id(ctx, field, obj)
+		case "location_code":
+			out.Values[i] = ec._User_location_code(ctx, field, obj)
 		case "files":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

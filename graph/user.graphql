@@ -9,6 +9,8 @@ type User {
     updated_at: String
     deleted_at: String
     auth_digit: String
+    google_id: String
+    location_code: String
     files: [FileUpload] @goField(forceResolver: true)
 }
 
