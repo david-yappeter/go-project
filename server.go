@@ -19,6 +19,8 @@ import (
 const defaultPort = "8080"
 
 func main() {
+	// service.SendEmailVerificationEmail(context.TODO(), "daviddummy2003@gmail.com", "jsaijdiajsfiojqwifuqjf83uf13")
+
 	// migration.MigrateTable()
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -38,6 +40,7 @@ func main() {
 	router.Handle("/query", srv)
 	router.HandleFunc("/auth/google", service.GoogleOauth2RedirectLink)
 	router.HandleFunc("/auth/google/callback", service.GoogleOauth2ParseCallback)
+	router.HandleFunc("/verify/email", service.EmailVerification)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

@@ -61,7 +61,7 @@ func CheckEmail(ctx context.Context, email string) (bool, error) {
 
 	if strings.ToLower(respStruct.Status) != "valid" {
 		return false, &gqlerror.Error{
-			Message: "Email Unavailable",
+			Message: "Not A Gmail Account",
 			Extensions: map[string]interface{}{
 				"code": "Unavailable",
 			},

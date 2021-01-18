@@ -104,19 +104,20 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Address         func(childComplexity int) int
-		AuthDigit       func(childComplexity int) int
-		CreatedAt       func(childComplexity int) int
-		DeletedAt       func(childComplexity int) int
-		Email           func(childComplexity int) int
-		Files           func(childComplexity int) int
-		GoogleID        func(childComplexity int) int
-		ID              func(childComplexity int) int
-		LocationCode    func(childComplexity int) int
-		Name            func(childComplexity int) int
-		Password        func(childComplexity int) int
-		TelephoneNumber func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
+		Address                 func(childComplexity int) int
+		CreatedAt               func(childComplexity int) int
+		DeletedAt               func(childComplexity int) int
+		Email                   func(childComplexity int) int
+		EmailVerificationHash   func(childComplexity int) int
+		EmailVerificationStatus func(childComplexity int) int
+		Files                   func(childComplexity int) int
+		GoogleID                func(childComplexity int) int
+		ID                      func(childComplexity int) int
+		LocationCode            func(childComplexity int) int
+		Name                    func(childComplexity int) int
+		Password                func(childComplexity int) int
+		TelephoneNumber         func(childComplexity int) int
+		UpdatedAt               func(childComplexity int) int
 	}
 
 	UserOps struct {
@@ -448,13 +449,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Address(childComplexity), true
 
-	case "User.auth_digit":
-		if e.complexity.User.AuthDigit == nil {
-			break
-		}
-
-		return e.complexity.User.AuthDigit(childComplexity), true
-
 	case "User.created_at":
 		if e.complexity.User.CreatedAt == nil {
 			break
@@ -475,6 +469,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Email(childComplexity), true
+
+	case "User.email_verification_hash":
+		if e.complexity.User.EmailVerificationHash == nil {
+			break
+		}
+
+		return e.complexity.User.EmailVerificationHash(childComplexity), true
+
+	case "User.email_verification_status":
+		if e.complexity.User.EmailVerificationStatus == nil {
+			break
+		}
+
+		return e.complexity.User.EmailVerificationStatus(childComplexity), true
 
 	case "User.files":
 		if e.complexity.User.Files == nil {
@@ -780,7 +788,8 @@ type TokenOps {
     created_at: String!
     updated_at: String
     deleted_at: String
-    auth_digit: String
+    email_verification_hash:  String
+    email_verification_status: Int!
     google_id: String
     location_code: String
     files: [FileUpload] @goField(forceResolver: true)
@@ -815,7 +824,8 @@ input UpdateUser {
     created_at: String!
     updated_at: String
     deleted_at: String
-    auth_digit: String
+    email_verification_hash:  String
+    email_verification_status: Int!
 }
 
 type UserOps {
@@ -2765,7 +2775,7 @@ func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_auth_digit(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_email_verification_hash(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2783,7 +2793,7 @@ func (ec *executionContext) _User_auth_digit(ctx context.Context, field graphql.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AuthDigit, nil
+		return obj.EmailVerificationHash, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2795,6 +2805,41 @@ func (ec *executionContext) _User_auth_digit(ctx context.Context, field graphql.
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_email_verification_status(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmailVerificationStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_google_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -4659,11 +4704,19 @@ func (ec *executionContext) unmarshalInputUpdateUser(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
-		case "auth_digit":
+		case "email_verification_hash":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("auth_digit"))
-			it.AuthDigit, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email_verification_hash"))
+			it.EmailVerificationHash, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email_verification_status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email_verification_status"))
+			it.EmailVerificationStatus, err = ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5110,8 +5163,13 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_updated_at(ctx, field, obj)
 		case "deleted_at":
 			out.Values[i] = ec._User_deleted_at(ctx, field, obj)
-		case "auth_digit":
-			out.Values[i] = ec._User_auth_digit(ctx, field, obj)
+		case "email_verification_hash":
+			out.Values[i] = ec._User_email_verification_hash(ctx, field, obj)
+		case "email_verification_status":
+			out.Values[i] = ec._User_email_verification_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "google_id":
 			out.Values[i] = ec._User_google_id(ctx, field, obj)
 		case "location_code":

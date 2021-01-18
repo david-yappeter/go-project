@@ -37,16 +37,17 @@ type TokenOps struct {
 }
 
 type UpdateUser struct {
-	ID              int     `json:"id"`
-	Name            string  `json:"name"`
-	Password        string  `json:"password"`
-	Email           string  `json:"email"`
-	Address         *string `json:"address"`
-	TelephoneNumber *string `json:"telephone_number"`
-	CreatedAt       string  `json:"created_at"`
-	UpdatedAt       *string `json:"updated_at"`
-	DeletedAt       *string `json:"deleted_at"`
-	AuthDigit       *string `json:"auth_digit"`
+	ID                      int     `json:"id"`
+	Name                    string  `json:"name"`
+	Password                string  `json:"password"`
+	Email                   string  `json:"email"`
+	Address                 *string `json:"address"`
+	TelephoneNumber         *string `json:"telephone_number"`
+	CreatedAt               string  `json:"created_at"`
+	UpdatedAt               *string `json:"updated_at"`
+	DeletedAt               *string `json:"deleted_at"`
+	EmailVerificationHash   *string `json:"email_verification_hash"`
+	EmailVerificationStatus int     `json:"email_verification_status"`
 }
 
 type UserOps struct {

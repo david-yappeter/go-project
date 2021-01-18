@@ -46,13 +46,15 @@ func UserCreate(ctx context.Context, input model.NewUser) (*model.User, error) {
 
 	timeNow := tools.TimeUTC()
 
+	randomHash := tools.RandomHash()
 	user := model.User{
-		Address:         input.Address,
-		Email:           input.Email,
-		Name:            input.Name,
-		Password:        tools.HashPassword(input.Password),
-		TelephoneNumber: input.TelephoneNumber,
-		CreatedAt:       timeNow,
+		Address:               input.Address,
+		Email:                 input.Email,
+		Name:                  input.Name,
+		Password:              tools.HashPassword(input.Password),
+		TelephoneNumber:       input.TelephoneNumber,
+		CreatedAt:             timeNow,
+		EmailVerificationHash: &randomHash,
 	}
 
 	err = db.Table("user").Create(&user).Error
@@ -75,13 +77,15 @@ func UserCreateBatch(ctx context.Context, input []*model.NewUser) ([]*model.User
 	timeNow := tools.TimeUTC()
 
 	for _, val := range input {
+		randomHash := tools.RandomHash()
 		user := model.User{
-			Address:         val.Address,
-			Email:           val.Email,
-			Name:            val.Name,
-			Password:        tools.HashPassword(val.Password),
-			TelephoneNumber: val.TelephoneNumber,
-			CreatedAt:       timeNow,
+			Address:               val.Address,
+			Email:                 val.Email,
+			Name:                  val.Name,
+			Password:              tools.HashPassword(val.Password),
+			TelephoneNumber:       val.TelephoneNumber,
+			CreatedAt:             timeNow,
+			EmailVerificationHash: &randomHash,
 		}
 
 		userBatch = append(userBatch, &user)
@@ -105,25 +109,28 @@ func UserUpdate(ctx context.Context, input model.UpdateUser) (*model.User, error
 
 	timeNow := tools.TimeUTC()
 	user := model.User{
-		Address:         input.Address,
-		AuthDigit:       input.AuthDigit,
-		Email:           input.Email,
-		ID:              input.ID,
-		Name:            input.Name,
-		Password:        input.Password,
-		TelephoneNumber: input.TelephoneNumber,
-		UpdatedAt:       &timeNow,
+		Address:                 input.Address,
+		EmailVerificationHash:   input.EmailVerificationHash,
+		Email:                   input.Email,
+		ID:                      input.ID,
+		Name:                    input.Name,
+		Password:                input.Password,
+		TelephoneNumber:         input.TelephoneNumber,
+		EmailVerificationStatus: input.EmailVerificationStatus,
+
+		UpdatedAt: &timeNow,
 	}
 
 	err := db.Table("user").Where("id = ?", input.ID).Updates(map[string]interface{}{
-		"address":          input.Address,
-		"auth_digit":       input.AuthDigit,
-		"email":            input.Email,
-		"id":               input.ID,
-		"name":             input.Name,
-		"password":         input.Password,
-		"telephone_number": input.TelephoneNumber,
-		"updated_at":       &timeNow,
+		"address":                   input.Address,
+		"email_verification_hash":   input.EmailVerificationHash,
+		"email":                     input.Email,
+		"id":                        input.ID,
+		"name":                      input.Name,
+		"password":                  input.Password,
+		"telephone_number":          input.TelephoneNumber,
+		"email_verification_status": input.EmailVerificationStatus,
+		"updated_at":                &timeNow,
 	}).Error
 
 	if err != nil {
@@ -337,12 +344,14 @@ func UserCreateByGoogleID(ctx context.Context, googleID string, name string, ema
 
 	timeNow := tools.TimeUTC()
 
+	randomHash := tools.RandomHash()
 	user := model.User{
-		GoogleID:     &googleID,
-		Name:         name,
-		Email:        email,
-		LocationCode: &locationCode,
-		CreatedAt:    timeNow,
+		GoogleID:              &googleID,
+		Name:                  name,
+		Email:                 email,
+		LocationCode:          &locationCode,
+		CreatedAt:             timeNow,
+		EmailVerificationHash: &randomHash,
 	}
 
 	err := db.Table("user").Create(&user).Error
@@ -377,8 +386,39 @@ func UserGetByGoogleID(ctx context.Context, googleID string, scopes *bool) (*mod
 	return &user, nil
 }
 
+//UserUpdateGoogleByEmail User Update Google Things By Email
+func UserUpdateGoogleByEmail(ctx context.Context, googleID string, email string, locationCode string) error {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	// query := db.Table("user")
+
+	// err := query.Where("google_id = ?", googleID).First(&user).Error
+
+	err := db.Table("user").Where("lower(email) = ?", email).Updates(map[string]interface{}{
+		"google_id":     googleID,
+		"location_code": locationCode,
+	}).Error
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 //UserFindOrCreateByGoogleID Find Or Create By GoogleID
 func UserFindOrCreateByGoogleID(ctx context.Context, googleID string, name string, email string, locationCode string) (*model.User, error) {
+
+	err := UserUpdateGoogleByEmail(ctx, googleID, email, locationCode)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
 	scopes := true
 	findUser, err := UserGetByGoogleID(ctx, googleID, &scopes)
 
@@ -397,4 +437,28 @@ func UserFindOrCreateByGoogleID(ctx context.Context, googleID string, name strin
 	}
 
 	return findUser, nil
+}
+
+//UserUpdateEmailVerification User Update Email Verification
+func UserUpdateEmailVerification(ctx context.Context, hash string) (string, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	query := db.Table("user").Where("email_verification_hash = ?", hash).Updates(map[string]interface{}{
+		"email_verification_status": 1,
+		"email_verification_hash":   nil,
+	})
+
+	if query.Error != nil {
+		fmt.Println(query.Error)
+		return "Failed", query.Error
+	}
+
+	if query.RowsAffected == 0 {
+		fmt.Println("No Hash Found")
+		return "Failed", fmt.Errorf("BAD REQUEST")
+	}
+
+	return "Success", nil
 }
