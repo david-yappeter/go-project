@@ -64,6 +64,13 @@ func UserCreate(ctx context.Context, input model.NewUser) (*model.User, error) {
 		return nil, err
 	}
 
+	_, err = SendEmailVerificationEmail(ctx, input.Email, randomHash)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
 	return &user, nil
 }
 
@@ -96,6 +103,15 @@ func UserCreateBatch(ctx context.Context, input []*model.NewUser) ([]*model.User
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
+	}
+
+	for _, val := range userBatch {
+		_, err = SendEmailVerificationEmail(ctx, val.Email, *val.EmailVerificationHash)
+
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
 	}
 
 	return userBatch, nil
@@ -355,6 +371,13 @@ func UserCreateByGoogleID(ctx context.Context, googleID string, name string, ema
 	}
 
 	err := db.Table("user").Create(&user).Error
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	_, err = SendEmailVerificationEmail(ctx, email, randomHash)
 
 	if err != nil {
 		fmt.Println(err)
