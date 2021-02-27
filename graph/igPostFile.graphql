@@ -1,0 +1,16 @@
+type IgPostFile {
+    id: ID!
+    file_id: String!
+    
+    # Foreign Key
+    post_id: ID!
+
+    # goField
+    view_link: String! @goField(forceResolver: true)
+    download_link: String! @goField(forceResolver: true)
+}
+
+input NewIgPostFile {
+    file_id: String!
+    post_id: String!
+}

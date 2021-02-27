@@ -12,6 +12,8 @@ type Query {
   file(id: Int!, scopes: Boolean): FileUpload @goField(forceResolver: true) @isLogin
   files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
 
+  github_repositories(username: String!): [UserGithubRepository]! @goField(forceResolver: true)
+
   me: User! @goField(forceResolver: true) @isLogin
 }
 

@@ -39,6 +39,10 @@ func (r *queryResolver) Files(ctx context.Context, userID *int, limit *int, page
 	return &model.FileUploadPagination{Limit: limit, Page: page, Asc: asc, SortBy: sortBy, Filter: filter, Scopes: scopes, UserID: userID}, nil
 }
 
+func (r *queryResolver) GithubRepositories(ctx context.Context, username string) ([]*model.UserGithubRepository, error) {
+	return service.GithubGetUserRepositories(ctx, username)
+}
+
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	return service.UserGetByToken(ctx)
 }

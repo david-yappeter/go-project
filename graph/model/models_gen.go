@@ -19,6 +19,26 @@ type FileUploadPagination struct {
 	Nodes     []*FileUpload `json:"nodes"`
 }
 
+
+
+type IgPostOps struct {
+	Create    *IgPost `json:"create"`
+	Update    *IgPost `json:"update"`
+	Archive   string  `json:"archive"`
+	Unarchive string  `json:"unarchive"`
+	Delete    string  `json:"delete"`
+}
+
+type NewIgPost struct {
+	Caption string           `json:"caption"`
+	Files   []*NewIgPostFile `json:"files"`
+}
+
+type NewIgPostFile struct {
+	FileID string `json:"file_id"`
+	PostID string `json:"post_id"`
+}
+
 type NewUser struct {
 	Name            string  `json:"name"`
 	Password        string  `json:"password"`
@@ -34,6 +54,11 @@ type TokenData struct {
 
 type TokenOps struct {
 	Login *TokenData `json:"login"`
+}
+
+type UpdateIgPost struct {
+	ID      int     `json:"id"`
+	Caption *string `json:"caption"`
 }
 
 type UpdateUser struct {
