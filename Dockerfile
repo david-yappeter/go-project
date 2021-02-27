@@ -1,16 +1,21 @@
-FROM golang:1.14-alpine AS build
-RUN apk add git
 
-RUN mkdir /app
-WORKDIR /app
+FROM golang:1.13-alpine as builder
+RUN apk --no-cache add ca-certificates git
+WORKDIR /build/myapp
 
-# COPY go.mod .
-# COPY go.sum .
+# Fetch dependencies
+COPY go.mod ./
+RUN go mod download
 
-# RUN go mod 
+# Build
+COPY . ./
 
-COPY . .
+RUN CGO_ENABLED=0 go build -o ./executable
 
-RUN go build -o /bin/myapp
+# Create final image
+FROM alpine
+WORKDIR /root
+COPY --from=builder /build/myapp/executable /build/myapp/.env ./
 
-CMD ["/bin/myapp"]
+EXPOSE 8080
+CMD ["./executable"]

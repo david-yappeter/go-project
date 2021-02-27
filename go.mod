@@ -1,4 +1,4 @@
-// +heroku goVersion go1.13
+// +heroku goVersion go1.14
 module github.com/davidyap2002/user-go
 
 go 1.15
@@ -8,7 +8,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/joho/godotenv v1.3.0
-	github.com/machinebox/graphql v0.2.2
 	github.com/shiyanhui/hero v0.0.2
 	github.com/vektah/gqlparser/v2 v2.1.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9

@@ -39,6 +39,9 @@ type ResolverRoot interface {
 	FileUpload() FileUploadResolver
 	FileUploadOps() FileUploadOpsResolver
 	FileUploadPagination() FileUploadPaginationResolver
+	IgPost() IgPostResolver
+	IgPostFile() IgPostFileResolver
+	IgPostOps() IgPostOpsResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	TokenOps() TokenOpsResolver
@@ -80,6 +83,34 @@ type ComplexityRoot struct {
 		UserID    func(childComplexity int) int
 	}
 
+	IgPost struct {
+		Caption    func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		DeletedAt  func(childComplexity int) int
+		Files      func(childComplexity int) int
+		ID         func(childComplexity int) int
+		IsArchived func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
+		User       func(childComplexity int) int
+		UserID     func(childComplexity int) int
+	}
+
+	IgPostFile struct {
+		DownloadLink func(childComplexity int) int
+		FileID       func(childComplexity int) int
+		ID           func(childComplexity int) int
+		PostID       func(childComplexity int) int
+		ViewLink     func(childComplexity int) int
+	}
+
+	IgPostOps struct {
+		Archive   func(childComplexity int, id int) int
+		Create    func(childComplexity int, input model.NewIgPost) int
+		Delete    func(childComplexity int, id int) int
+		Unarchive func(childComplexity int, id int) int
+		Update    func(childComplexity int, input model.UpdateIgPost) int
+	}
+
 	Mutation struct {
 		File  func(childComplexity int) int
 		Token func(childComplexity int) int
@@ -87,11 +118,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		File  func(childComplexity int, id int, scopes *bool) int
-		Files func(childComplexity int, userID *int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) int
-		Me    func(childComplexity int) int
-		User  func(childComplexity int, id int, scopes *bool) int
-		Users func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) int
+		File               func(childComplexity int, id int, scopes *bool) int
+		Files              func(childComplexity int, userID *int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) int
+		GithubRepositories func(childComplexity int, username string) int
+		Me                 func(childComplexity int) int
+		User               func(childComplexity int, id int, scopes *bool) int
+		Users              func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) int
 	}
 
 	TokenData struct {
@@ -118,6 +150,14 @@ type ComplexityRoot struct {
 		Password                func(childComplexity int) int
 		TelephoneNumber         func(childComplexity int) int
 		UpdatedAt               func(childComplexity int) int
+	}
+
+	UserGithubRepository struct {
+		FullName func(childComplexity int) int
+		HTMLURL  func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Private  func(childComplexity int) int
 	}
 
 	UserOps struct {
@@ -152,6 +192,20 @@ type FileUploadPaginationResolver interface {
 	TotalData(ctx context.Context, obj *model.FileUploadPagination) (int, error)
 	Nodes(ctx context.Context, obj *model.FileUploadPagination) ([]*model.FileUpload, error)
 }
+type IgPostResolver interface {
+	User(ctx context.Context, obj *model.IgPost) ([]*model.User, error)
+}
+type IgPostFileResolver interface {
+	ViewLink(ctx context.Context, obj *model.IgPostFile) (string, error)
+	DownloadLink(ctx context.Context, obj *model.IgPostFile) (string, error)
+}
+type IgPostOpsResolver interface {
+	Create(ctx context.Context, obj *model.IgPostOps, input model.NewIgPost) (*model.IgPost, error)
+	Update(ctx context.Context, obj *model.IgPostOps, input model.UpdateIgPost) (*model.IgPost, error)
+	Archive(ctx context.Context, obj *model.IgPostOps, id int) (string, error)
+	Unarchive(ctx context.Context, obj *model.IgPostOps, id int) (string, error)
+	Delete(ctx context.Context, obj *model.IgPostOps, id int) (string, error)
+}
 type MutationResolver interface {
 	File(ctx context.Context) (*model.FileUploadOps, error)
 	Token(ctx context.Context) (*model.TokenOps, error)
@@ -162,6 +216,7 @@ type QueryResolver interface {
 	Users(ctx context.Context, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) (*model.UserPagination, error)
 	File(ctx context.Context, id int, scopes *bool) (*model.FileUpload, error)
 	Files(ctx context.Context, userID *int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) (*model.FileUploadPagination, error)
+	GithubRepositories(ctx context.Context, username string) ([]*model.UserGithubRepository, error)
 	Me(ctx context.Context) (*model.User, error)
 }
 type TokenOpsResolver interface {
@@ -340,6 +395,164 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.FileUploadPagination.UserID(childComplexity), true
 
+	case "IgPost.caption":
+		if e.complexity.IgPost.Caption == nil {
+			break
+		}
+
+		return e.complexity.IgPost.Caption(childComplexity), true
+
+	case "IgPost.created_at":
+		if e.complexity.IgPost.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.IgPost.CreatedAt(childComplexity), true
+
+	case "IgPost.deleted_at":
+		if e.complexity.IgPost.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.IgPost.DeletedAt(childComplexity), true
+
+	case "IgPost.files":
+		if e.complexity.IgPost.Files == nil {
+			break
+		}
+
+		return e.complexity.IgPost.Files(childComplexity), true
+
+	case "IgPost.id":
+		if e.complexity.IgPost.ID == nil {
+			break
+		}
+
+		return e.complexity.IgPost.ID(childComplexity), true
+
+	case "IgPost.is_archived":
+		if e.complexity.IgPost.IsArchived == nil {
+			break
+		}
+
+		return e.complexity.IgPost.IsArchived(childComplexity), true
+
+	case "IgPost.updated_at":
+		if e.complexity.IgPost.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.IgPost.UpdatedAt(childComplexity), true
+
+	case "IgPost.user":
+		if e.complexity.IgPost.User == nil {
+			break
+		}
+
+		return e.complexity.IgPost.User(childComplexity), true
+
+	case "IgPost.user_id":
+		if e.complexity.IgPost.UserID == nil {
+			break
+		}
+
+		return e.complexity.IgPost.UserID(childComplexity), true
+
+	case "IgPostFile.download_link":
+		if e.complexity.IgPostFile.DownloadLink == nil {
+			break
+		}
+
+		return e.complexity.IgPostFile.DownloadLink(childComplexity), true
+
+	case "IgPostFile.file_id":
+		if e.complexity.IgPostFile.FileID == nil {
+			break
+		}
+
+		return e.complexity.IgPostFile.FileID(childComplexity), true
+
+	case "IgPostFile.id":
+		if e.complexity.IgPostFile.ID == nil {
+			break
+		}
+
+		return e.complexity.IgPostFile.ID(childComplexity), true
+
+	case "IgPostFile.post_id":
+		if e.complexity.IgPostFile.PostID == nil {
+			break
+		}
+
+		return e.complexity.IgPostFile.PostID(childComplexity), true
+
+	case "IgPostFile.view_link":
+		if e.complexity.IgPostFile.ViewLink == nil {
+			break
+		}
+
+		return e.complexity.IgPostFile.ViewLink(childComplexity), true
+
+	case "IgPostOps.archive":
+		if e.complexity.IgPostOps.Archive == nil {
+			break
+		}
+
+		args, err := ec.field_IgPostOps_archive_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.IgPostOps.Archive(childComplexity, args["id"].(int)), true
+
+	case "IgPostOps.create":
+		if e.complexity.IgPostOps.Create == nil {
+			break
+		}
+
+		args, err := ec.field_IgPostOps_create_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.IgPostOps.Create(childComplexity, args["input"].(model.NewIgPost)), true
+
+	case "IgPostOps.delete":
+		if e.complexity.IgPostOps.Delete == nil {
+			break
+		}
+
+		args, err := ec.field_IgPostOps_delete_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.IgPostOps.Delete(childComplexity, args["id"].(int)), true
+
+	case "IgPostOps.unarchive":
+		if e.complexity.IgPostOps.Unarchive == nil {
+			break
+		}
+
+		args, err := ec.field_IgPostOps_unarchive_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.IgPostOps.Unarchive(childComplexity, args["id"].(int)), true
+
+	case "IgPostOps.update":
+		if e.complexity.IgPostOps.Update == nil {
+			break
+		}
+
+		args, err := ec.field_IgPostOps_update_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.IgPostOps.Update(childComplexity, args["input"].(model.UpdateIgPost)), true
+
 	case "Mutation.file":
 		if e.complexity.Mutation.File == nil {
 			break
@@ -384,6 +597,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Files(childComplexity, args["user_id"].(*int), args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["filter"].([]*int), args["scopes"].(*bool)), true
+
+	case "Query.github_repositories":
+		if e.complexity.Query.GithubRepositories == nil {
+			break
+		}
+
+		args, err := ec.field_Query_github_repositories_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GithubRepositories(childComplexity, args["username"].(string)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -539,6 +764,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
+
+	case "UserGithubRepository.full_name":
+		if e.complexity.UserGithubRepository.FullName == nil {
+			break
+		}
+
+		return e.complexity.UserGithubRepository.FullName(childComplexity), true
+
+	case "UserGithubRepository.html_url":
+		if e.complexity.UserGithubRepository.HTMLURL == nil {
+			break
+		}
+
+		return e.complexity.UserGithubRepository.HTMLURL(childComplexity), true
+
+	case "UserGithubRepository.id":
+		if e.complexity.UserGithubRepository.ID == nil {
+			break
+		}
+
+		return e.complexity.UserGithubRepository.ID(childComplexity), true
+
+	case "UserGithubRepository.name":
+		if e.complexity.UserGithubRepository.Name == nil {
+			break
+		}
+
+		return e.complexity.UserGithubRepository.Name(childComplexity), true
+
+	case "UserGithubRepository.private":
+		if e.complexity.UserGithubRepository.Private == nil {
+			break
+		}
+
+		return e.complexity.UserGithubRepository.Private(childComplexity), true
 
 	case "UserOps.create":
 		if e.complexity.UserOps.Create == nil {
@@ -748,6 +1008,61 @@ type FileUploadOps {
     upload_batch(files: [Upload!]!): [FileUpload!]! @goField(forceResolver: true) @isLogin
 }
 `, BuiltIn: false},
+	{Name: "graph/github.graphql", Input: `type UserGithubRepository {
+    id: Int! 
+    name: String!
+    full_name: String!
+    private: Boolean!
+    html_url: String!
+}`, BuiltIn: false},
+	{Name: "graph/igPost.graphql", Input: `type IgPost {
+    id: ID!
+    caption: String!
+    files: [IgPostFile!]!
+
+    created_at: String!
+    updated_at: String!
+    deleted_at: String!
+    is_archived: Int!
+
+    # Foreign Key
+    user_id: ID!
+
+    # goField
+    user: [User!]! @goField(forceResolver: true)
+}
+
+input NewIgPost {
+    caption: String!
+    files: [NewIgPostFile]
+}
+
+input UpdateIgPost {
+    id: ID!
+    caption: String
+}
+
+type IgPostOps {
+    create(input: NewIgPost!): IgPost! @goField(forceResolver: true) @isLogin
+    update(input: UpdateIgPost!): IgPost! @goField(forceResolver: true) @isLogin
+    archive(id: ID!): String! @goField(forceResolver: true) @isLogin
+    unarchive(id: ID!): String! @goField(forceResolver: true) @isLogin
+    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+}`, BuiltIn: false},
+	{Name: "graph/igPostFile.graphql", Input: `type IgPostFile {
+    id: ID!
+    file_id: String!
+    view_link: String! @goField(forceResolver: true)
+    download_link: String! @goField(forceResolver: true)
+    
+    # Foreign Key
+    post_id: ID!
+}
+
+input NewIgPostFile {
+    file_id: String!
+    post_id: String!
+}`, BuiltIn: false},
 	{Name: "graph/schema.graphql", Input: `# GraphQL schema example
 #
 # https://gqlgen.com/getting-started/
@@ -761,6 +1076,8 @@ type Query {
 
   file(id: Int!, scopes: Boolean): FileUpload @goField(forceResolver: true) @isLogin
   files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
+
+  github_repositories(username: String!): [UserGithubRepository]! @goField(forceResolver: true)
 
   me: User! @goField(forceResolver: true) @isLogin
 }
@@ -872,6 +1189,81 @@ func (ec *executionContext) field_FileUploadOps_upload_single_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_IgPostOps_archive_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_IgPostOps_create_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewIgPost
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewIgPost2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewIgPost(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_IgPostOps_delete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_IgPostOps_unarchive_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_IgPostOps_update_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateIgPost
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateIgPost2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUpdateIgPost(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -977,6 +1369,21 @@ func (ec *executionContext) field_Query_files_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["scopes"] = arg6
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_github_repositories_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
 	return args, nil
 }
 
@@ -1890,6 +2297,806 @@ func (ec *executionContext) _FileUploadPagination_nodes(ctx context.Context, fie
 	return ec.marshalOFileUpload2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐFileUpload(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _IgPost_id(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_caption(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Caption, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_files(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Files, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IgPostFile)
+	fc.Result = res
+	return ec.marshalNIgPostFile2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostFileᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_created_at(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_deleted_at(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_is_archived(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsArchived, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_user_id(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_user(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IgPost().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostFile_id(ctx context.Context, field graphql.CollectedField, obj *model.IgPostFile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostFile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostFile_file_id(ctx context.Context, field graphql.CollectedField, obj *model.IgPostFile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostFile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FileID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostFile_view_link(ctx context.Context, field graphql.CollectedField, obj *model.IgPostFile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostFile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IgPostFile().ViewLink(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostFile_download_link(ctx context.Context, field graphql.CollectedField, obj *model.IgPostFile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostFile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IgPostFile().DownloadLink(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostFile_post_id(ctx context.Context, field graphql.CollectedField, obj *model.IgPostFile) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostFile",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PostID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostOps_create(ctx context.Context, field graphql.CollectedField, obj *model.IgPostOps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostOps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_IgPostOps_create_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.IgPostOps().Create(rctx, obj, args["input"].(model.NewIgPost))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.IgPost); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/davidyap2002/user-go/graph/model.IgPost`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IgPost)
+	fc.Result = res
+	return ec.marshalNIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostOps_update(ctx context.Context, field graphql.CollectedField, obj *model.IgPostOps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostOps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_IgPostOps_update_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.IgPostOps().Update(rctx, obj, args["input"].(model.UpdateIgPost))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.IgPost); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/davidyap2002/user-go/graph/model.IgPost`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IgPost)
+	fc.Result = res
+	return ec.marshalNIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostOps_archive(ctx context.Context, field graphql.CollectedField, obj *model.IgPostOps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostOps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_IgPostOps_archive_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.IgPostOps().Archive(rctx, obj, args["id"].(int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostOps_unarchive(ctx context.Context, field graphql.CollectedField, obj *model.IgPostOps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostOps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_IgPostOps_unarchive_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.IgPostOps().Unarchive(rctx, obj, args["id"].(int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostOps_delete(ctx context.Context, field graphql.CollectedField, obj *model.IgPostOps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostOps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_IgPostOps_delete_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.IgPostOps().Delete(rctx, obj, args["id"].(int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_file(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2232,6 +3439,48 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	res := resTmp.(*model.FileUploadPagination)
 	fc.Result = res
 	return ec.marshalNFileUploadPagination2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐFileUploadPagination(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_github_repositories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_github_repositories_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GithubRepositories(rctx, args["username"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserGithubRepository)
+	fc.Result = res
+	return ec.marshalNUserGithubRepository2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserGithubRepository(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2936,6 +4185,181 @@ func (ec *executionContext) _User_files(ctx context.Context, field graphql.Colle
 	res := resTmp.([]*model.FileUpload)
 	fc.Result = res
 	return ec.marshalOFileUpload2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐFileUpload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserGithubRepository_id(ctx context.Context, field graphql.CollectedField, obj *model.UserGithubRepository) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserGithubRepository",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserGithubRepository_name(ctx context.Context, field graphql.CollectedField, obj *model.UserGithubRepository) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserGithubRepository",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserGithubRepository_full_name(ctx context.Context, field graphql.CollectedField, obj *model.UserGithubRepository) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserGithubRepository",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FullName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserGithubRepository_private(ctx context.Context, field graphql.CollectedField, obj *model.UserGithubRepository) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserGithubRepository",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Private, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserGithubRepository_html_url(ctx context.Context, field graphql.CollectedField, obj *model.UserGithubRepository) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserGithubRepository",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HTMLURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserOps_create(ctx context.Context, field graphql.CollectedField, obj *model.UserOps) (ret graphql.Marshaler) {
@@ -4574,6 +5998,62 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputNewIgPost(ctx context.Context, obj interface{}) (model.NewIgPost, error) {
+	var it model.NewIgPost
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "caption":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caption"))
+			it.Caption, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "files":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("files"))
+			it.Files, err = ec.unmarshalONewIgPostFile2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewIgPostFile(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputNewIgPostFile(ctx context.Context, obj interface{}) (model.NewIgPostFile, error) {
+	var it model.NewIgPostFile
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "file_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file_id"))
+			it.FileID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "post_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("post_id"))
+			it.PostID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj interface{}) (model.NewUser, error) {
 	var it model.NewUser
 	var asMap = obj.(map[string]interface{})
@@ -4617,6 +6097,34 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("telephone_number"))
 			it.TelephoneNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateIgPost(ctx context.Context, obj interface{}) (model.UpdateIgPost, error) {
+	var it model.UpdateIgPost
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "caption":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("caption"))
+			it.Caption, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4919,6 +6427,239 @@ func (ec *executionContext) _FileUploadPagination(ctx context.Context, sel ast.S
 	return out
 }
 
+var igPostImplementors = []string{"IgPost"}
+
+func (ec *executionContext) _IgPost(ctx context.Context, sel ast.SelectionSet, obj *model.IgPost) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, igPostImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IgPost")
+		case "id":
+			out.Values[i] = ec._IgPost_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "caption":
+			out.Values[i] = ec._IgPost_caption(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "files":
+			out.Values[i] = ec._IgPost_files(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "created_at":
+			out.Values[i] = ec._IgPost_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updated_at":
+			out.Values[i] = ec._IgPost_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "deleted_at":
+			out.Values[i] = ec._IgPost_deleted_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "is_archived":
+			out.Values[i] = ec._IgPost_is_archived(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "user_id":
+			out.Values[i] = ec._IgPost_user_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPost_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var igPostFileImplementors = []string{"IgPostFile"}
+
+func (ec *executionContext) _IgPostFile(ctx context.Context, sel ast.SelectionSet, obj *model.IgPostFile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, igPostFileImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IgPostFile")
+		case "id":
+			out.Values[i] = ec._IgPostFile_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "file_id":
+			out.Values[i] = ec._IgPostFile_file_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "view_link":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostFile_view_link(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "download_link":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostFile_download_link(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "post_id":
+			out.Values[i] = ec._IgPostFile_post_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var igPostOpsImplementors = []string{"IgPostOps"}
+
+func (ec *executionContext) _IgPostOps(ctx context.Context, sel ast.SelectionSet, obj *model.IgPostOps) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, igPostOpsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IgPostOps")
+		case "create":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostOps_create(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "update":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostOps_update(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "archive":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostOps_archive(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "unarchive":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostOps_unarchive(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "delete":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostOps_delete(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -5017,6 +6758,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_files(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "github_repositories":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_github_repositories(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5185,6 +6940,53 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				res = ec._User_files(ctx, field, obj)
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userGithubRepositoryImplementors = []string{"UserGithubRepository"}
+
+func (ec *executionContext) _UserGithubRepository(ctx context.Context, sel ast.SelectionSet, obj *model.UserGithubRepository) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userGithubRepositoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserGithubRepository")
+		case "id":
+			out.Values[i] = ec._UserGithubRepository_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._UserGithubRepository_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "full_name":
+			out.Values[i] = ec._UserGithubRepository_full_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "private":
+			out.Values[i] = ec._UserGithubRepository_private(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "html_url":
+			out.Values[i] = ec._UserGithubRepository_html_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5701,6 +7503,67 @@ func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.Selectio
 	return res
 }
 
+func (ec *executionContext) marshalNIgPost2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx context.Context, sel ast.SelectionSet, v model.IgPost) graphql.Marshaler {
+	return ec._IgPost(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx context.Context, sel ast.SelectionSet, v *model.IgPost) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IgPost(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNIgPostFile2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostFileᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.IgPostFile) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIgPostFile2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNIgPostFile2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostFile(ctx context.Context, sel ast.SelectionSet, v *model.IgPostFile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IgPostFile(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5714,6 +7577,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNNewIgPost2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewIgPost(ctx context.Context, v interface{}) (model.NewIgPost, error) {
+	res, err := ec.unmarshalInputNewIgPost(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
@@ -5748,6 +7616,11 @@ func (ec *executionContext) marshalNTokenData2ᚖgithubᚗcomᚋdavidyap2002ᚋu
 		return graphql.Null
 	}
 	return ec._TokenData(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateIgPost2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUpdateIgPost(ctx context.Context, v interface{}) (model.UpdateIgPost, error) {
+	res, err := ec.unmarshalInputUpdateIgPost(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUpdateUser2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUpdateUser(ctx context.Context, v interface{}) (model.UpdateUser, error) {
@@ -5825,6 +7698,43 @@ func (ec *executionContext) marshalNUser2githubᚗcomᚋdavidyap2002ᚋuserᚑgo
 	return ec._User(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUser2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -5833,6 +7743,43 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋdavidyap2002ᚋuser�
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserGithubRepository2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserGithubRepository(ctx context.Context, sel ast.SelectionSet, v []*model.UserGithubRepository) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserGithubRepository2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserGithubRepository(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNUserOps2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserOps(ctx context.Context, sel ast.SelectionSet, v model.UserOps) graphql.Marshaler {
@@ -6229,6 +8176,38 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return graphql.MarshalInt(*v)
 }
 
+func (ec *executionContext) unmarshalONewIgPostFile2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewIgPostFile(ctx context.Context, v interface{}) ([]*model.NewIgPostFile, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.NewIgPostFile, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalONewIgPostFile2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewIgPostFile(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalONewIgPostFile2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐNewIgPostFile(ctx context.Context, v interface{}) (*model.NewIgPostFile, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputNewIgPostFile(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6305,6 +8284,13 @@ func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋdavidyap2002ᚋuser�
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserGithubRepository2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserGithubRepository(ctx context.Context, sel ast.SelectionSet, v *model.UserGithubRepository) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserGithubRepository(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

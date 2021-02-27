@@ -1,0 +1,34 @@
+type IgPost {
+    id: ID!
+    caption: String!
+    files: [IgPostFile!]!
+
+    created_at: String!
+    updated_at: String!
+    deleted_at: String!
+    is_archived: Int!
+
+    # Foreign Key
+    user_id: ID!
+
+    # goField
+    user: [User!]! @goField(forceResolver: true)
+}
+
+input NewIgPost {
+    caption: String!
+    files: [NewIgPostFile]
+}
+
+input UpdateIgPost {
+    id: ID!
+    caption: String
+}
+
+type IgPostOps {
+    create(input: NewIgPost!): IgPost! @goField(forceResolver: true) @isLogin
+    update(input: UpdateIgPost!): IgPost! @goField(forceResolver: true) @isLogin
+    archive(id: ID!): String! @goField(forceResolver: true) @isLogin
+    unarchive(id: ID!): String! @goField(forceResolver: true) @isLogin
+    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+}

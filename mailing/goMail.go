@@ -3,6 +3,7 @@ package mailing
 import (
 	"log"
 	"os"
+
 	"strconv"
 
 	gomail "gopkg.in/gomail.v2"
@@ -30,7 +31,7 @@ func SendEmail(recipients []string, subject string, htmlBody string) {
 
 	d := gomail.NewPlainDialer(configHost, configPort, configEmail, configPassword)
 	if err := d.DialAndSend(m); err != nil {
-		panic(err)
+		log.Println("Email Error : ", err)
 	}
 
 	log.Println("Mail sent!")

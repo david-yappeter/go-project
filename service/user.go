@@ -435,28 +435,26 @@ func UserUpdateGoogleByEmail(ctx context.Context, googleID string, email string,
 //UserFindOrCreateByGoogleID Find Or Create By GoogleID
 func UserFindOrCreateByGoogleID(ctx context.Context, googleID string, name string, email string, locationCode string) (*model.User, error) {
 
-	err := UserUpdateGoogleByEmail(ctx, googleID, email, locationCode)
-
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
 	scopes := true
-	findUser, err := UserGetByGoogleID(ctx, googleID, &scopes)
+	findUser, err := UserGetByEmail(ctx, email, &scopes)
 
 	if err != nil && err != gorm.ErrRecordNotFound {
 		fmt.Println(err)
-		return nil, err
-	}
-
-	if findUser == nil {
+	} else if err == gorm.ErrRecordNotFound || findUser == nil {
 		findUser, err = UserCreateByGoogleID(ctx, googleID, name, email, locationCode)
 
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
+	} else if findUser.GoogleID == nil {
+		err = UserUpdateGoogleByEmail(ctx, googleID, email, locationCode)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		findUser.GoogleID = &googleID
 	}
 
 	return findUser, nil
