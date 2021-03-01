@@ -42,6 +42,7 @@ type ResolverRoot interface {
 	IgPost() IgPostResolver
 	IgPostFile() IgPostFileResolver
 	IgPostOps() IgPostOpsResolver
+	IgPostPagination() IgPostPaginationResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	TokenOps() TokenOpsResolver
@@ -73,7 +74,6 @@ type ComplexityRoot struct {
 
 	FileUploadPagination struct {
 		Asc       func(childComplexity int) int
-		Filter    func(childComplexity int) int
 		Limit     func(childComplexity int) int
 		Nodes     func(childComplexity int) int
 		Page      func(childComplexity int) int
@@ -113,19 +113,32 @@ type ComplexityRoot struct {
 		Update        func(childComplexity int, input model.UpdateIgPost) int
 	}
 
+	IgPostPagination struct {
+		Asc       func(childComplexity int) int
+		Limit     func(childComplexity int) int
+		Nodes     func(childComplexity int) int
+		Page      func(childComplexity int) int
+		Scopes    func(childComplexity int) int
+		SortBy    func(childComplexity int) int
+		TotalData func(childComplexity int) int
+	}
+
 	Mutation struct {
-		File  func(childComplexity int) int
-		Token func(childComplexity int) int
-		User  func(childComplexity int) int
+		File   func(childComplexity int) int
+		IgPost func(childComplexity int) int
+		Token  func(childComplexity int) int
+		User   func(childComplexity int) int
 	}
 
 	Query struct {
 		File               func(childComplexity int, id int, scopes *bool) int
-		Files              func(childComplexity int, userID *int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) int
+		Files              func(childComplexity int, userID *int, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) int
 		GithubRepositories func(childComplexity int, username string) int
+		IgPost             func(childComplexity int, id int) int
+		IgPosts            func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) int
 		Me                 func(childComplexity int) int
 		User               func(childComplexity int, id int, scopes *bool) int
-		Users              func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) int
+		Users              func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) int
 	}
 
 	TokenData struct {
@@ -172,7 +185,6 @@ type ComplexityRoot struct {
 
 	UserPagination struct {
 		Asc       func(childComplexity int) int
-		Filter    func(childComplexity int) int
 		Limit     func(childComplexity int) int
 		Nodes     func(childComplexity int) int
 		Page      func(childComplexity int) int
@@ -210,17 +222,24 @@ type IgPostOpsResolver interface {
 	RestoreDelete(ctx context.Context, obj *model.IgPostOps, id int) (string, error)
 	HardDelete(ctx context.Context, obj *model.IgPostOps, id int) (string, error)
 }
+type IgPostPaginationResolver interface {
+	TotalData(ctx context.Context, obj *model.IgPostPagination) (int, error)
+	Nodes(ctx context.Context, obj *model.IgPostPagination) ([]*model.IgPost, error)
+}
 type MutationResolver interface {
 	File(ctx context.Context) (*model.FileUploadOps, error)
 	Token(ctx context.Context) (*model.TokenOps, error)
 	User(ctx context.Context) (*model.UserOps, error)
+	IgPost(ctx context.Context) (*model.IgPostOps, error)
 }
 type QueryResolver interface {
 	User(ctx context.Context, id int, scopes *bool) (*model.User, error)
-	Users(ctx context.Context, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) (*model.UserPagination, error)
+	Users(ctx context.Context, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) (*model.UserPagination, error)
 	File(ctx context.Context, id int, scopes *bool) (*model.FileUpload, error)
-	Files(ctx context.Context, userID *int, limit *int, page *int, asc *bool, sortBy *string, filter []*int, scopes *bool) (*model.FileUploadPagination, error)
+	Files(ctx context.Context, userID *int, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) (*model.FileUploadPagination, error)
 	GithubRepositories(ctx context.Context, username string) ([]*model.UserGithubRepository, error)
+	IgPost(ctx context.Context, id int) (*model.IgPost, error)
+	IgPosts(ctx context.Context, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) (*model.IgPostPagination, error)
 	Me(ctx context.Context) (*model.User, error)
 }
 type TokenOpsResolver interface {
@@ -342,13 +361,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.FileUploadPagination.Asc(childComplexity), true
-
-	case "FileUploadPagination.filter":
-		if e.complexity.FileUploadPagination.Filter == nil {
-			break
-		}
-
-		return e.complexity.FileUploadPagination.Filter(childComplexity), true
 
 	case "FileUploadPagination.limit":
 		if e.complexity.FileUploadPagination.Limit == nil {
@@ -581,12 +593,68 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.IgPostOps.Update(childComplexity, args["input"].(model.UpdateIgPost)), true
 
+	case "IgPostPagination.asc":
+		if e.complexity.IgPostPagination.Asc == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.Asc(childComplexity), true
+
+	case "IgPostPagination.limit":
+		if e.complexity.IgPostPagination.Limit == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.Limit(childComplexity), true
+
+	case "IgPostPagination.nodes":
+		if e.complexity.IgPostPagination.Nodes == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.Nodes(childComplexity), true
+
+	case "IgPostPagination.page":
+		if e.complexity.IgPostPagination.Page == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.Page(childComplexity), true
+
+	case "IgPostPagination.scopes":
+		if e.complexity.IgPostPagination.Scopes == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.Scopes(childComplexity), true
+
+	case "IgPostPagination.sort_by":
+		if e.complexity.IgPostPagination.SortBy == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.SortBy(childComplexity), true
+
+	case "IgPostPagination.total_data":
+		if e.complexity.IgPostPagination.TotalData == nil {
+			break
+		}
+
+		return e.complexity.IgPostPagination.TotalData(childComplexity), true
+
 	case "Mutation.file":
 		if e.complexity.Mutation.File == nil {
 			break
 		}
 
 		return e.complexity.Mutation.File(childComplexity), true
+
+	case "Mutation.ig_post":
+		if e.complexity.Mutation.IgPost == nil {
+			break
+		}
+
+		return e.complexity.Mutation.IgPost(childComplexity), true
 
 	case "Mutation.token":
 		if e.complexity.Mutation.Token == nil {
@@ -624,7 +692,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Files(childComplexity, args["user_id"].(*int), args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["filter"].([]*int), args["scopes"].(*bool)), true
+		return e.complexity.Query.Files(childComplexity, args["user_id"].(*int), args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool)), true
 
 	case "Query.github_repositories":
 		if e.complexity.Query.GithubRepositories == nil {
@@ -637,6 +705,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GithubRepositories(childComplexity, args["username"].(string)), true
+
+	case "Query.ig_post":
+		if e.complexity.Query.IgPost == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ig_post_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IgPost(childComplexity, args["id"].(int)), true
+
+	case "Query.ig_posts":
+		if e.complexity.Query.IgPosts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ig_posts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IgPosts(childComplexity, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -667,7 +759,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["filter"].([]*int), args["scopes"].(*bool)), true
+		return e.complexity.Query.Users(childComplexity, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool)), true
 
 	case "TokenData.token":
 		if e.complexity.TokenData.Token == nil {
@@ -895,13 +987,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserPagination.Asc(childComplexity), true
 
-	case "UserPagination.filter":
-		if e.complexity.UserPagination.Filter == nil {
-			break
-		}
-
-		return e.complexity.UserPagination.Filter(childComplexity), true
-
 	case "UserPagination.limit":
 		if e.complexity.UserPagination.Limit == nil {
 			break
@@ -1024,7 +1109,6 @@ type FileUploadPagination {
     page: Int
     asc: Boolean
     sort_by: String
-    filter: [Int]
     scopes: Boolean
     user_id: ID
     total_data: Int! @goField(forceResolver: true)
@@ -1048,7 +1132,7 @@ type FileUploadOps {
     caption: String!
     files: [IgPostFile!]!
 
-    created_at: String
+    created_at: String!
     updated_at: String
     deleted_at: String
     is_archived: Int!
@@ -1058,6 +1142,16 @@ type FileUploadOps {
 
     # goField
     user: User! @goField(forceResolver: true)
+}
+
+type IgPostPagination {
+    limit: Int
+    page: Int
+    asc: Boolean
+    sort_by: String
+    scopes: Boolean
+    total_data: Int! @goField(forceResolver: true)
+    nodes: [IgPost] @goField(forceResolver: true)
 }
 
 input NewIgPost {
@@ -1106,12 +1200,15 @@ scalar Upload
 
 type Query {
   user(id: Int!, scopes: Boolean): User @goField(forceResolver: true) @isLogin
-  users(limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): UserPagination! @goField(forceResolver: true) @isLogin
+  users(limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): UserPagination! @goField(forceResolver: true) @isLogin
 
   file(id: Int!, scopes: Boolean): FileUpload @goField(forceResolver: true) @isLogin
-  files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
+  files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
 
   github_repositories(username: String!): [UserGithubRepository]! @goField(forceResolver: true)
+
+  ig_post(id: ID!): IgPost! @goField(forceResolver: true)
+  ig_posts(limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): IgPostPagination! @goField(forceResolver: true)
 
   me: User! @goField(forceResolver: true) @isLogin
 }
@@ -1120,6 +1217,8 @@ type Mutation {
   file: FileUploadOps! @goField(forceResolver: true)
   token: TokenOps @goField(forceResolver: true)
   user: UserOps! @goField(forceResolver: true)
+
+  ig_post: IgPostOps! @goField(forceResolver: true)
 }`, BuiltIn: false},
 	{Name: "graph/token.graphql", Input: `type TokenData {
     type: String!
@@ -1148,10 +1247,9 @@ type TokenOps {
 
 type UserPagination {
     limit: Int
-    page: Int 
+    page: Int
     asc: Boolean 
     sort_by: String
-    filter: [Int]
     scopes: Boolean
     total_data: Int! @goField(forceResolver: true)
     nodes: [User] @goField(forceResolver: true)
@@ -1415,24 +1513,15 @@ func (ec *executionContext) field_Query_files_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["sort_by"] = arg4
-	var arg5 []*int
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg5, err = ec.unmarshalOInt2ᚕᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filter"] = arg5
-	var arg6 *bool
+	var arg5 *bool
 	if tmp, ok := rawArgs["scopes"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
-		arg6, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["scopes"] = arg6
+	args["scopes"] = arg5
 	return args, nil
 }
 
@@ -1448,6 +1537,72 @@ func (ec *executionContext) field_Query_github_repositories_args(ctx context.Con
 		}
 	}
 	args["username"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ig_post_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ig_posts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["asc"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("asc"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["asc"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["sort_by"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort_by"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort_by"] = arg3
+	var arg4 *bool
+	if tmp, ok := rawArgs["scopes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
+		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["scopes"] = arg4
 	return args, nil
 }
 
@@ -1514,24 +1669,15 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["sort_by"] = arg3
-	var arg4 []*int
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg4, err = ec.unmarshalOInt2ᚕᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filter"] = arg4
-	var arg5 *bool
+	var arg4 *bool
 	if tmp, ok := rawArgs["scopes"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("scopes"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["scopes"] = arg5
+	args["scopes"] = arg4
 	return args, nil
 }
 
@@ -2198,38 +2344,6 @@ func (ec *executionContext) _FileUploadPagination_sort_by(ctx context.Context, f
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _FileUploadPagination_filter(ctx context.Context, field graphql.CollectedField, obj *model.FileUploadPagination) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "FileUploadPagination",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Filter, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚕᚖint(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _FileUploadPagination_scopes(ctx context.Context, field graphql.CollectedField, obj *model.FileUploadPagination) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2491,11 +2605,14 @@ func (ec *executionContext) _IgPost_created_at(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IgPost_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
@@ -3276,6 +3393,233 @@ func (ec *executionContext) _IgPostOps_hard_delete(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _IgPostPagination_limit(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Limit, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostPagination_page(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Page, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostPagination_asc(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Asc, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostPagination_sort_by(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SortBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostPagination_scopes(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Scopes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostPagination_total_data(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IgPostPagination().TotalData(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPostPagination_nodes(ctx context.Context, field graphql.CollectedField, obj *model.IgPostPagination) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPostPagination",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IgPostPagination().Nodes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IgPost)
+	fc.Result = res
+	return ec.marshalOIgPost2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_file(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3378,6 +3722,41 @@ func (ec *executionContext) _Mutation_user(ctx context.Context, field graphql.Co
 	return ec.marshalNUserOps2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserOps(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_ig_post(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().IgPost(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IgPostOps)
+	fc.Result = res
+	return ec.marshalNIgPostOps2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostOps(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3463,7 +3842,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Users(rctx, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["filter"].([]*int), args["scopes"].(*bool))
+			return ec.resolvers.Query().Users(rctx, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsLogin == nil {
@@ -3584,7 +3963,7 @@ func (ec *executionContext) _Query_files(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Files(rctx, args["user_id"].(*int), args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["filter"].([]*int), args["scopes"].(*bool))
+			return ec.resolvers.Query().Files(rctx, args["user_id"].(*int), args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsLogin == nil {
@@ -3660,6 +4039,90 @@ func (ec *executionContext) _Query_github_repositories(ctx context.Context, fiel
 	res := resTmp.([]*model.UserGithubRepository)
 	fc.Result = res
 	return ec.marshalNUserGithubRepository2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserGithubRepository(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ig_post(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ig_post_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IgPost(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IgPost)
+	fc.Result = res
+	return ec.marshalNIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ig_posts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ig_posts_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IgPosts(rctx, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.IgPostPagination)
+	fc.Result = res
+	return ec.marshalNIgPostPagination2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostPagination(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4957,38 +5420,6 @@ func (ec *executionContext) _UserPagination_sort_by(ctx context.Context, field g
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserPagination_filter(ctx context.Context, field graphql.CollectedField, obj *model.UserPagination) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserPagination",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Filter, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*int)
-	fc.Result = res
-	return ec.marshalOInt2ᚕᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserPagination_scopes(ctx context.Context, field graphql.CollectedField, obj *model.UserPagination) (ret graphql.Marshaler) {
@@ -6572,8 +7003,6 @@ func (ec *executionContext) _FileUploadPagination(ctx context.Context, sel ast.S
 			out.Values[i] = ec._FileUploadPagination_asc(ctx, field, obj)
 		case "sort_by":
 			out.Values[i] = ec._FileUploadPagination_sort_by(ctx, field, obj)
-		case "filter":
-			out.Values[i] = ec._FileUploadPagination_filter(ctx, field, obj)
 		case "scopes":
 			out.Values[i] = ec._FileUploadPagination_scopes(ctx, field, obj)
 		case "user_id":
@@ -6642,6 +7071,9 @@ func (ec *executionContext) _IgPost(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "created_at":
 			out.Values[i] = ec._IgPost_created_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "updated_at":
 			out.Values[i] = ec._IgPost_updated_at(ctx, field, obj)
 		case "deleted_at":
@@ -6866,6 +7298,63 @@ func (ec *executionContext) _IgPostOps(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var igPostPaginationImplementors = []string{"IgPostPagination"}
+
+func (ec *executionContext) _IgPostPagination(ctx context.Context, sel ast.SelectionSet, obj *model.IgPostPagination) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, igPostPaginationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IgPostPagination")
+		case "limit":
+			out.Values[i] = ec._IgPostPagination_limit(ctx, field, obj)
+		case "page":
+			out.Values[i] = ec._IgPostPagination_page(ctx, field, obj)
+		case "asc":
+			out.Values[i] = ec._IgPostPagination_asc(ctx, field, obj)
+		case "sort_by":
+			out.Values[i] = ec._IgPostPagination_sort_by(ctx, field, obj)
+		case "scopes":
+			out.Values[i] = ec._IgPostPagination_scopes(ctx, field, obj)
+		case "total_data":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostPagination_total_data(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "nodes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPostPagination_nodes(ctx, field, obj)
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -6890,6 +7379,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_token(ctx, field)
 		case "user":
 			out.Values[i] = ec._Mutation_user(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "ig_post":
+			out.Values[i] = ec._Mutation_ig_post(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6978,6 +7472,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_github_repositories(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "ig_post":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ig_post(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "ig_posts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ig_posts(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -7315,8 +7837,6 @@ func (ec *executionContext) _UserPagination(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._UserPagination_asc(ctx, field, obj)
 		case "sort_by":
 			out.Values[i] = ec._UserPagination_sort_by(ctx, field, obj)
-		case "filter":
-			out.Values[i] = ec._UserPagination_filter(ctx, field, obj)
 		case "scopes":
 			out.Values[i] = ec._UserPagination_scopes(ctx, field, obj)
 		case "total_data":
@@ -7768,6 +8288,34 @@ func (ec *executionContext) marshalNIgPostFile2ᚖgithubᚗcomᚋdavidyap2002ᚋ
 		return graphql.Null
 	}
 	return ec._IgPostFile(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNIgPostOps2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostOps(ctx context.Context, sel ast.SelectionSet, v model.IgPostOps) graphql.Marshaler {
+	return ec._IgPostOps(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIgPostOps2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostOps(ctx context.Context, sel ast.SelectionSet, v *model.IgPostOps) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IgPostOps(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNIgPostPagination2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostPagination(ctx context.Context, sel ast.SelectionSet, v model.IgPostPagination) graphql.Marshaler {
+	return ec._IgPostPagination(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNIgPostPagination2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostPagination(ctx context.Context, sel ast.SelectionSet, v *model.IgPostPagination) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._IgPostPagination(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -8294,40 +8842,51 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	return graphql.MarshalInt(*v)
 }
 
-func (ec *executionContext) unmarshalOInt2ᚕᚖint(ctx context.Context, v interface{}) ([]*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*int, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOInt2ᚖint(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOInt2ᚕᚖint(ctx context.Context, sel ast.SelectionSet, v []*int) graphql.Marshaler {
+func (ec *executionContext) marshalOIgPost2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx context.Context, sel ast.SelectionSet, v []*model.IgPost) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOInt2ᚖint(ctx, sel, v[i])
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
 	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
 
+	}
+	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx context.Context, sel ast.SelectionSet, v *model.IgPost) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._IgPost(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

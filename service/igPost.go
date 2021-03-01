@@ -22,7 +22,7 @@ func IgPostCreate(ctx context.Context, input model.NewIgPost) (*model.IgPost, er
 
 	igPost := model.IgPost{
 		Caption:    input.Caption,
-		CreatedAt:  &timeNow,
+		CreatedAt:  timeNow,
 		UpdatedAt:  nil,
 		DeletedAt:  nil,
 		IsArchived: 0,
@@ -76,7 +76,7 @@ func IgPostCreateBatch(ctx context.Context, input []*model.NewIgPost) ([]*model.
 	for _, val := range input {
 		igPost := model.IgPost{
 			Caption:    val.Caption,
-			CreatedAt:  &timeNow,
+			CreatedAt:  timeNow,
 			UpdatedAt:  nil,
 			DeletedAt:  nil,
 			IsArchived: 0,

@@ -7,12 +7,15 @@ scalar Upload
 
 type Query {
   user(id: Int!, scopes: Boolean): User @goField(forceResolver: true) @isLogin
-  users(limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): UserPagination! @goField(forceResolver: true) @isLogin
+  users(limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): UserPagination! @goField(forceResolver: true) @isLogin
 
   file(id: Int!, scopes: Boolean): FileUpload @goField(forceResolver: true) @isLogin
-  files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String, filter: [Int], scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
+  files(user_id: ID, limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): FileUploadPagination! @goField(forceResolver: true) @isLogin
 
   github_repositories(username: String!): [UserGithubRepository]! @goField(forceResolver: true)
+
+  ig_post(id: ID!): IgPost! @goField(forceResolver: true)
+  ig_posts(limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): IgPostPagination! @goField(forceResolver: true)
 
   me: User! @goField(forceResolver: true) @isLogin
 }
@@ -21,4 +24,6 @@ type Mutation {
   file: FileUploadOps! @goField(forceResolver: true)
   token: TokenOps @goField(forceResolver: true)
   user: UserOps! @goField(forceResolver: true)
+
+  ig_post: IgPostOps! @goField(forceResolver: true)
 }

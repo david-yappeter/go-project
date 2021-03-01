@@ -13,7 +13,11 @@ func MigrateTable() {
 
 	var user model.User
 	var fileUpload model.FileUpload
+	var igPost model.IgPost
+	var igPostFile model.IgPostFile
 
 	db.AutoMigrate(&user)
 	db.AutoMigrate(&fileUpload)
+	db.AutoMigrate(&igPost)
+	db.AutoMigrate(&igPostFile)
 }

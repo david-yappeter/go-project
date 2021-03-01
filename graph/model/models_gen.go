@@ -16,7 +16,6 @@ type FileUploadPagination struct {
 	Page      *int          `json:"page"`
 	Asc       *bool         `json:"asc"`
 	SortBy    *string       `json:"sort_by"`
-	Filter    []*int        `json:"filter"`
 	Scopes    *bool         `json:"scopes"`
 	UserID    *int          `json:"user_id"`
 	TotalData int           `json:"total_data"`
@@ -31,6 +30,16 @@ type IgPostOps struct {
 	SoftDelete    string  `json:"soft_delete"`
 	RestoreDelete string  `json:"restore_delete"`
 	HardDelete    string  `json:"hard_delete"`
+}
+
+type IgPostPagination struct {
+	Limit     *int      `json:"limit"`
+	Page      *int      `json:"page"`
+	Asc       *bool     `json:"asc"`
+	SortBy    *string   `json:"sort_by"`
+	Scopes    *bool     `json:"scopes"`
+	TotalData int       `json:"total_data"`
+	Nodes     []*IgPost `json:"nodes"`
 }
 
 type NewIgPost struct {
@@ -93,7 +102,6 @@ type UserPagination struct {
 	Page      *int    `json:"page"`
 	Asc       *bool   `json:"asc"`
 	SortBy    *string `json:"sort_by"`
-	Filter    []*int  `json:"filter"`
 	Scopes    *bool   `json:"scopes"`
 	TotalData int     `json:"total_data"`
 	Nodes     []*User `json:"nodes"`

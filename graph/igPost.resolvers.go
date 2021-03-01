@@ -43,21 +43,25 @@ func (r *igPostOpsResolver) HardDelete(ctx context.Context, obj *model.IgPostOps
 	return service.IgPostDelete(ctx, id)
 }
 
+func (r *igPostPaginationResolver) TotalData(ctx context.Context, obj *model.IgPostPagination) (int, error) {
+	return service.IgPostTotalDataPagination(ctx, obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Scopes)
+}
+
+func (r *igPostPaginationResolver) Nodes(ctx context.Context, obj *model.IgPostPagination) ([]*model.IgPost, error) {
+	return service.IgPostPagination(ctx, obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Scopes)
+}
+
 // IgPost returns generated.IgPostResolver implementation.
 func (r *Resolver) IgPost() generated.IgPostResolver { return &igPostResolver{r} }
 
 // IgPostOps returns generated.IgPostOpsResolver implementation.
 func (r *Resolver) IgPostOps() generated.IgPostOpsResolver { return &igPostOpsResolver{r} }
 
+// IgPostPagination returns generated.IgPostPaginationResolver implementation.
+func (r *Resolver) IgPostPagination() generated.IgPostPaginationResolver {
+	return &igPostPaginationResolver{r}
+}
+
 type igPostResolver struct{ *Resolver }
 type igPostOpsResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *igPostOpsResolver) Delete(ctx context.Context, obj *model.IgPostOps, id int) (string, error) {
-	panic("a")
-}
+type igPostPaginationResolver struct{ *Resolver }

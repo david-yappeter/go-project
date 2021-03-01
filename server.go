@@ -20,6 +20,8 @@ import (
 const defaultPort = "8080"
 
 func main() {
+	// migration.MigrateTable()
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")

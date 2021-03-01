@@ -2,12 +2,12 @@ package model
 
 //IgPost IgPost Struct
 type IgPost struct {
-	ID         int           `json:"id"`
-	Caption    string        `json:"caption"`
-	Files      []*IgPostFile `json:"files"`
-	CreatedAt  *string       `json:"created_at"`
-	UpdatedAt  *string       `json:"updated_at"`
-	DeletedAt  *string       `json:"deleted_at"`
-	IsArchived int           `json:"is_archived"`
-	UserID     int           `json:"user_id"`
+	ID         int           `gorm:"type:int;AUTO_INCREMENT;not null"`
+	Caption    string        `gorm:"type:text;not null"`
+	CreatedAt  string        `gorm:"type:timestamp;not null"`
+	UpdatedAt  *string       `gorm:"type:timestamp;null;default:null"`
+	DeletedAt  *string       `gorm:"type:timestamp;null;default:null"`
+	IsArchived int           `gorm:"type:int;not null;default:0"`
+	UserID     int           `gorm:"type:int;not null"`
+	Files      []*IgPostFile `gorm:"-"`
 }
