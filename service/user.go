@@ -273,7 +273,7 @@ func UserGetAll(ctx context.Context, scopes *bool) ([]*model.User, error) {
 }
 
 //UserPagination Pagination
-func UserPagination(ctx context.Context, limit int, page int, ascending bool, sortBy string, filter []int, scopes *bool) ([]*model.User, error) {
+func UserPagination(ctx context.Context, limit *int, page *int, ascending *bool, sortBy *string, scopes *bool) ([]*model.User, error) {
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
@@ -282,7 +282,7 @@ func UserPagination(ctx context.Context, limit int, page int, ascending bool, so
 
 	query := db.Table("user")
 
-	tools.QueryMaker(query, limit, page, ascending, sortBy, filter)
+	tools.QueryMaker(query, limit, page, ascending, sortBy, scopes)
 
 	tools.DeletedAt(query, scopes)
 
@@ -297,7 +297,7 @@ func UserPagination(ctx context.Context, limit int, page int, ascending bool, so
 }
 
 //UserTotalDataPagination  Total Data Pagination
-func UserTotalDataPagination(ctx context.Context, limit int, page int, ascending bool, sortBy string, filter []int, scopes *bool) (int, error) {
+func UserTotalDataPagination(ctx context.Context, limit *int, page *int, ascending *bool, sortBy *string, scopes *bool) (int, error) {
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
@@ -306,7 +306,7 @@ func UserTotalDataPagination(ctx context.Context, limit int, page int, ascending
 
 	query := db.Table("user")
 
-	tools.QueryMaker(query, limit, page, ascending, sortBy, filter)
+	tools.QueryMaker(query, limit, page, ascending, sortBy, scopes)
 
 	tools.DeletedAt(query, scopes)
 

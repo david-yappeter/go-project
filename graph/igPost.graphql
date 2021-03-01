@@ -3,26 +3,28 @@ type IgPost {
     caption: String!
     files: [IgPostFile!]!
 
-    created_at: String!
-    updated_at: String!
-    deleted_at: String!
+    created_at: String
+    updated_at: String
+    deleted_at: String
     is_archived: Int!
 
     # Foreign Key
     user_id: ID!
 
     # goField
-    user: [User!]! @goField(forceResolver: true)
+    user: User! @goField(forceResolver: true)
 }
 
 input NewIgPost {
     caption: String!
-    files: [NewIgPostFile]
+    files: [Upload!]!
 }
 
 input UpdateIgPost {
     id: ID!
     caption: String
+    is_archived: Int
+
 }
 
 type IgPostOps {
@@ -30,5 +32,7 @@ type IgPostOps {
     update(input: UpdateIgPost!): IgPost! @goField(forceResolver: true) @isLogin
     archive(id: ID!): String! @goField(forceResolver: true) @isLogin
     unarchive(id: ID!): String! @goField(forceResolver: true) @isLogin
-    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+    soft_delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+    restore_delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+    hard_delete(id: ID!): String! @goField(forceResolver: true) @isLogin
 }

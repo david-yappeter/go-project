@@ -10,7 +10,6 @@ import (
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/graph/model"
 	"github.com/davidyap2002/user-go/service"
-	"github.com/davidyap2002/user-go/tools"
 )
 
 func (r *fileUploadResolver) ViewLink(ctx context.Context, obj *model.FileUpload) (string, error) {
@@ -30,13 +29,11 @@ func (r *fileUploadOpsResolver) UploadBatch(ctx context.Context, obj *model.File
 }
 
 func (r *fileUploadPaginationResolver) TotalData(ctx context.Context, obj *model.FileUploadPagination) (int, error) {
-	limit, page, asc, sortBy, filter := tools.PaginationVariableGenerator(obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Filter)
-	return service.FileUploadTotalDataPagination(ctx, limit, page, asc, sortBy, filter, obj.Scopes, obj.UserID)
+	return service.FileUploadTotalDataPagination(ctx, obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Scopes, obj.UserID)
 }
 
 func (r *fileUploadPaginationResolver) Nodes(ctx context.Context, obj *model.FileUploadPagination) ([]*model.FileUpload, error) {
-	limit, page, asc, sortBy, filter := tools.PaginationVariableGenerator(obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Filter)
-	return service.FileUploadPagination(ctx, limit, page, asc, sortBy, filter, obj.Scopes, obj.UserID)
+	return service.FileUploadPagination(ctx, obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Scopes, obj.UserID)
 }
 
 // FileUpload returns generated.FileUploadResolver implementation.

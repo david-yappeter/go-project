@@ -12,5 +12,5 @@ type IgPostFile {
 
 input NewIgPostFile {
     file_id: String!
-    post_id: String!
+    post_id: ID!
 }

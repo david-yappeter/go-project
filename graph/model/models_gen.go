@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"github.com/99designs/gqlgen/graphql"
+)
+
 type FileUploadOps struct {
 	UploadSingle *FileUpload   `json:"upload_single"`
 	UploadBatch  []*FileUpload `json:"upload_batch"`
@@ -19,24 +23,24 @@ type FileUploadPagination struct {
 	Nodes     []*FileUpload `json:"nodes"`
 }
 
-
-
 type IgPostOps struct {
-	Create    *IgPost `json:"create"`
-	Update    *IgPost `json:"update"`
-	Archive   string  `json:"archive"`
-	Unarchive string  `json:"unarchive"`
-	Delete    string  `json:"delete"`
+	Create        *IgPost `json:"create"`
+	Update        *IgPost `json:"update"`
+	Archive       string  `json:"archive"`
+	Unarchive     string  `json:"unarchive"`
+	SoftDelete    string  `json:"soft_delete"`
+	RestoreDelete string  `json:"restore_delete"`
+	HardDelete    string  `json:"hard_delete"`
 }
 
 type NewIgPost struct {
-	Caption string           `json:"caption"`
-	Files   []*NewIgPostFile `json:"files"`
+	Caption string            `json:"caption"`
+	Files   []*graphql.Upload `json:"files"`
 }
 
 type NewIgPostFile struct {
 	FileID string `json:"file_id"`
-	PostID string `json:"post_id"`
+	PostID int    `json:"post_id"`
 }
 
 type NewUser struct {
@@ -57,8 +61,9 @@ type TokenOps struct {
 }
 
 type UpdateIgPost struct {
-	ID      int     `json:"id"`
-	Caption *string `json:"caption"`
+	ID         int     `json:"id"`
+	Caption    *string `json:"caption"`
+	IsArchived *int    `json:"is_archived"`
 }
 
 type UpdateUser struct {

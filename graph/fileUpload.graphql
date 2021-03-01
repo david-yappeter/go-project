@@ -14,7 +14,6 @@ type FileUploadPagination {
     page: Int
     asc: Boolean
     sort_by: String
-    filter: [Int]
     scopes: Boolean
     user_id: ID
     total_data: Int! @goField(forceResolver: true)

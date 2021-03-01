@@ -17,10 +17,9 @@ type User {
 
 type UserPagination {
     limit: Int
-    page: Int 
+    page: Int
     asc: Boolean 
     sort_by: String
-    filter: [Int]
     scopes: Boolean
     total_data: Int! @goField(forceResolver: true)
     nodes: [User] @goField(forceResolver: true)

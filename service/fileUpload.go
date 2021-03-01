@@ -190,7 +190,7 @@ func FileUploadGetAll(ctx context.Context, scopes *bool) ([]*model.FileUpload, e
 }
 
 //FileUploadPagination Pagination
-func FileUploadPagination(ctx context.Context, limit int, page int, ascending bool, sortBy string, filter []int, scopes *bool, userID *int) ([]*model.FileUpload, error) {
+func FileUploadPagination(ctx context.Context, limit *int, page *int, ascending *bool, sortBy *string, scopes *bool, userID *int) ([]*model.FileUpload, error) {
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
@@ -199,7 +199,7 @@ func FileUploadPagination(ctx context.Context, limit int, page int, ascending bo
 
 	query := db.Table("file_upload")
 
-	tools.QueryMaker(query, limit, page, ascending, sortBy, filter)
+	tools.QueryMaker(query, limit, page, ascending, sortBy, scopes)
 
 	tools.DeletedAt(query, scopes)
 
@@ -216,7 +216,7 @@ func FileUploadPagination(ctx context.Context, limit int, page int, ascending bo
 }
 
 //FileUploadTotalDataPagination  Total Data Pagination
-func FileUploadTotalDataPagination(ctx context.Context, limit int, page int, ascending bool, sortBy string, filter []int, scopes *bool, userID *int) (int, error) {
+func FileUploadTotalDataPagination(ctx context.Context, limit *int, page *int, ascending *bool, sortBy *string, scopes *bool, userID *int) (int, error) {
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
@@ -225,7 +225,7 @@ func FileUploadTotalDataPagination(ctx context.Context, limit int, page int, asc
 
 	query := db.Table("file_upload")
 
-	tools.QueryMaker(query, limit, page, ascending, sortBy, filter)
+	tools.QueryMaker(query, limit, page, ascending, sortBy, scopes)
 
 	tools.DeletedAt(query, scopes)
 

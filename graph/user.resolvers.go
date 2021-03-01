@@ -10,7 +10,6 @@ import (
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/graph/model"
 	"github.com/davidyap2002/user-go/service"
-	"github.com/davidyap2002/user-go/tools"
 )
 
 func (r *userResolver) Files(ctx context.Context, obj *model.User) ([]*model.FileUpload, error) {
@@ -38,13 +37,11 @@ func (r *userOpsResolver) Delete(ctx context.Context, obj *model.UserOps, id int
 }
 
 func (r *userPaginationResolver) TotalData(ctx context.Context, obj *model.UserPagination) (int, error) {
-	limit, page, asc, sort, status := tools.PaginationVariableGenerator(obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Filter)
-	return service.UserTotalDataPagination(ctx, limit, page, asc, sort, status, obj.Scopes)
+	return service.UserTotalDataPagination(ctx, obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Scopes)
 }
 
 func (r *userPaginationResolver) Nodes(ctx context.Context, obj *model.UserPagination) ([]*model.User, error) {
-	limit, page, asc, sort, status := tools.PaginationVariableGenerator(obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Filter)
-	return service.UserPagination(ctx, limit, page, asc, sort, status, obj.Scopes)
+	return service.UserPagination(ctx, obj.Limit, obj.Page, obj.Asc, obj.SortBy, obj.Scopes)
 }
 
 // User returns generated.UserResolver implementation.
