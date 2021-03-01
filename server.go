@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 
 	"github.com/davidyap2002/user-go/dataloader"
 	"github.com/davidyap2002/user-go/directives"
@@ -22,14 +21,6 @@ const defaultPort = "8080"
 
 func main() {
 	// migration.MigrateTable()
-
-	cmd := exec.Command("powershell", "ls")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	errr := cmd.Run()
-	if errr != nil {
-		log.Fatalf("cmd.Run() failed with %s\n", errr)
-	}
 
 	err := godotenv.Load()
 	if err != nil {
