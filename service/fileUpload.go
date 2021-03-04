@@ -241,16 +241,6 @@ func FileUploadTotalDataPagination(ctx context.Context, limit *int, page *int, a
 	return int(count), nil
 }
 
-//FileUploadViewLink View Link
-func FileUploadViewLink(ctx context.Context, obj *model.FileUpload) (string, error) {
-	return fmt.Sprintf("https://drive.google.com/uc?export=view&id=%s", obj.FileID), nil
-}
-
-//FileUploadDownloadLink Download Link
-func FileUploadDownloadLink(ctx context.Context, obj *model.FileUpload) (string, error) {
-	return fmt.Sprintf("https://drive.google.com/uc?export=download&id=%s", obj.FileID), nil
-}
-
 //FileUploadGetByArrayUserID Dataloader
 func FileUploadGetByArrayUserID(ctx context.Context, userID []int, scopes *bool) ([]*model.FileUpload, error) {
 	db := config.ConnectGorm()

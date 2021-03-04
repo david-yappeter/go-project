@@ -1,14 +1,12 @@
 type User {
     id: Int!
     name: String!
-    password: String!
     email: String!
     address: String
     telephone_number: String
     created_at: String!
     updated_at: String
     deleted_at: String
-    email_verification_hash:  String
     email_verification_status: Int!
     google_id: String
     location_code: String

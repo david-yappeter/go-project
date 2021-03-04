@@ -13,7 +13,7 @@ import (
 )
 
 func (r *userResolver) Files(ctx context.Context, obj *model.User) ([]*model.FileUpload, error) {
-	return dataloader.For(ctx).FileUploadByID.Load(obj.ID)
+	return dataloader.For(ctx).FileUploadByUserIds.Load(obj.ID)
 }
 
 func (r *userOpsResolver) Create(ctx context.Context, obj *model.UserOps, input model.NewUser) (*model.User, error) {

@@ -6,10 +6,15 @@ package graph
 import (
 	"context"
 
+	"github.com/davidyap2002/user-go/dataloader"
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/graph/model"
 	"github.com/davidyap2002/user-go/service"
 )
+
+func (r *igPostResolver) Files(ctx context.Context, obj *model.IgPost) ([]*model.IgPostFile, error) {
+	return dataloader.For(ctx).IgPostFileByPostIds.Load(obj.ID)
+}
 
 func (r *igPostResolver) User(ctx context.Context, obj *model.IgPost) (*model.User, error) {
 	return service.UserGetByID(ctx, obj.UserID, nil)

@@ -483,3 +483,30 @@ func UserUpdateEmailVerification(ctx context.Context, hash string) (string, erro
 
 	return "Success", nil
 }
+
+//UserRegisterByEmail User Register By Email
+func UserRegisterByEmail(ctx context.Context, input model.UserRegisterByEmail) (*model.TokenData, error) {
+	if strings.Compare(input.Password, input.ConfirmPassword) != 0 {
+		return nil, &gqlerror.Error{
+			Message: "Password And Confirm Password doesn't match",
+			Extensions: map[string]interface{}{
+				"code": "NOT_MATCHED_PASSWORD",
+			},
+		}
+	}
+
+	_, err := UserCreate(ctx, model.NewUser{
+		Name:            input.Name,
+		Password:        input.Password,
+		Email:           input.Email,
+		Address:         input.Address,
+		TelephoneNumber: input.TelephoneNumber,
+	})
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return UserTokenCreateByEmail(ctx, input.Email, input.Password)
+}

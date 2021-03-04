@@ -191,50 +191,59 @@ func UploadFileBatch(ctx context.Context, userUploadFile []*graphql.Upload) ([]*
 
 	var fileUploadModels []*model.FileUpload
 
+	fileUploadChannel := make(chan model.FileUpload)
+
 	for _, val := range userUploadFile {
-		// Step 1. Open the file
-		f := val.File
 
-		// if err != nil {
-		// 	panic(fmt.Sprintf("cannot open file: %v", err))
-		// }
+		go func(val *graphql.Upload) {
+			// Step 1. Open the file
+			f := val.File
 
-		// defer f.Close()
+			// if err != nil {
+			// 	panic(fmt.Sprintf("cannot open file: %v", err))
+			// }
 
-		// Step 2. Get the Google Drive service
-		service, err := getService()
+			// defer f.Close()
 
-		// // Step 3. Create the directory
-		// dir, err := createDir(service, "My Folder", "root")
+			// Step 2. Get the Google Drive service
+			service, err := getService()
 
-		// if err != nil {
-		// 	panic(fmt.Sprintf("Could not create dir: %v\n", err))
-		// }
+			// // Step 3. Create the directory
+			// dir, err := createDir(service, "My Folder", "root")
 
-		// Step 4. Create the file and upload its content
-		file, err := createFile(service, val.Filename, val.ContentType, f, os.Getenv("GDRIVE_FOLDER_ID"))
+			// if err != nil {
+			// 	panic(fmt.Sprintf("Could not create dir: %v\n", err))
+			// }
 
-		// fmt.Println(file.Id)
+			// Step 4. Create the file and upload its content
+			file, err := createFile(service, val.Filename, val.ContentType, f, os.Getenv("GDRIVE_FOLDER_ID"))
 
-		if err != nil {
-			panic(fmt.Sprintf("Could not create file: %v\n", err))
-		}
+			// fmt.Println(file.Id)
 
-		// saveee, err := FileSaveCreate(context.Background(), file.Id)
+			if err != nil {
+				panic(fmt.Sprintf("Could not create file: %v\n", err))
+			}
 
-		fileUploadSingle, err := FileUploadCreate(ctx, model.NewFileUpload{
-			FileID: file.Id,
-			UserID: user.ID,
-		})
+			// saveee, err := FileSaveCreate(context.Background(), file.Id)
 
-		if err != nil {
-			panic(err)
-		}
+			fileUploadSingle, err := FileUploadCreate(ctx, model.NewFileUpload{
+				FileID: file.Id,
+				UserID: user.ID,
+			})
 
-		fileUploadModels = append(fileUploadModels, fileUploadSingle)
+			if err != nil {
+				panic(err)
+			}
 
-		// fmt.Printf("File '%s' successfully uploaded in '%s' directory", file.Name, "My File")
+			fileUploadChannel <- *fileUploadSingle
+		}(val)
+	}
 
+	lens := len(userUploadFile)
+
+	for i := 0; i < lens; i++ {
+		dataUploaded := <-fileUploadChannel
+		fileUploadModels = append(fileUploadModels, &dataUploaded)
 	}
 
 	return fileUploadModels, nil

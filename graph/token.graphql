@@ -3,6 +3,16 @@ type TokenData {
     token: String!
 }
 
+input UserRegisterByEmail {
+    name: String!
+    email: String!
+    password: String!
+    confirm_password: String!
+    address: String
+    telephone_number: String
+}
+
 type TokenOps {
     login(email: String!, password: String!): TokenData! @goField(forceResolver: true)
+    register_by_email(input: UserRegisterByEmail!): TokenData! @goField(forceResolver: true)
 }

@@ -55,6 +55,14 @@ func (r *queryResolver) IgPosts(ctx context.Context, limit *int, page *int, asc 
 	return &model.IgPostPagination{Limit: limit, Page: page, Asc: asc, SortBy: sortBy, Scopes: scopes}, nil
 }
 
+func (r *queryResolver) IgPostsByToken(ctx context.Context) ([]*model.IgPost, error) {
+	return service.IgPostGetByToken(ctx)
+}
+
+func (r *queryResolver) IgPostsByUser(ctx context.Context, userID int) ([]*model.IgPost, error) {
+	return service.IgPostGetByUserID(ctx, userID)
+}
+
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	return service.UserGetByToken(ctx)
 }

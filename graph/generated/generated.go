@@ -136,6 +136,8 @@ type ComplexityRoot struct {
 		GithubRepositories func(childComplexity int, username string) int
 		IgPost             func(childComplexity int, id int) int
 		IgPosts            func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) int
+		IgPostsByToken     func(childComplexity int) int
+		IgPostsByUser      func(childComplexity int, userID int) int
 		Me                 func(childComplexity int) int
 		User               func(childComplexity int, id int, scopes *bool) int
 		Users              func(childComplexity int, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) int
@@ -147,7 +149,8 @@ type ComplexityRoot struct {
 	}
 
 	TokenOps struct {
-		Login func(childComplexity int, email string, password string) int
+		Login           func(childComplexity int, email string, password string) int
+		RegisterByEmail func(childComplexity int, input model.UserRegisterByEmail) int
 	}
 
 	User struct {
@@ -155,14 +158,12 @@ type ComplexityRoot struct {
 		CreatedAt               func(childComplexity int) int
 		DeletedAt               func(childComplexity int) int
 		Email                   func(childComplexity int) int
-		EmailVerificationHash   func(childComplexity int) int
 		EmailVerificationStatus func(childComplexity int) int
 		Files                   func(childComplexity int) int
 		GoogleID                func(childComplexity int) int
 		ID                      func(childComplexity int) int
 		LocationCode            func(childComplexity int) int
 		Name                    func(childComplexity int) int
-		Password                func(childComplexity int) int
 		TelephoneNumber         func(childComplexity int) int
 		UpdatedAt               func(childComplexity int) int
 	}
@@ -207,6 +208,7 @@ type FileUploadPaginationResolver interface {
 	Nodes(ctx context.Context, obj *model.FileUploadPagination) ([]*model.FileUpload, error)
 }
 type IgPostResolver interface {
+	Files(ctx context.Context, obj *model.IgPost) ([]*model.IgPostFile, error)
 	User(ctx context.Context, obj *model.IgPost) (*model.User, error)
 }
 type IgPostFileResolver interface {
@@ -240,10 +242,13 @@ type QueryResolver interface {
 	GithubRepositories(ctx context.Context, username string) ([]*model.UserGithubRepository, error)
 	IgPost(ctx context.Context, id int) (*model.IgPost, error)
 	IgPosts(ctx context.Context, limit *int, page *int, asc *bool, sortBy *string, scopes *bool) (*model.IgPostPagination, error)
+	IgPostsByToken(ctx context.Context) ([]*model.IgPost, error)
+	IgPostsByUser(ctx context.Context, userID int) ([]*model.IgPost, error)
 	Me(ctx context.Context) (*model.User, error)
 }
 type TokenOpsResolver interface {
 	Login(ctx context.Context, obj *model.TokenOps, email string, password string) (*model.TokenData, error)
+	RegisterByEmail(ctx context.Context, obj *model.TokenOps, input model.UserRegisterByEmail) (*model.TokenData, error)
 }
 type UserResolver interface {
 	Files(ctx context.Context, obj *model.User) ([]*model.FileUpload, error)
@@ -730,6 +735,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.IgPosts(childComplexity, args["limit"].(*int), args["page"].(*int), args["asc"].(*bool), args["sort_by"].(*string), args["scopes"].(*bool)), true
 
+	case "Query.ig_posts_by_token":
+		if e.complexity.Query.IgPostsByToken == nil {
+			break
+		}
+
+		return e.complexity.Query.IgPostsByToken(childComplexity), true
+
+	case "Query.ig_posts_by_user":
+		if e.complexity.Query.IgPostsByUser == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ig_posts_by_user_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.IgPostsByUser(childComplexity, args["user_id"].(int)), true
+
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
 			break
@@ -787,6 +811,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TokenOps.Login(childComplexity, args["email"].(string), args["password"].(string)), true
 
+	case "TokenOps.register_by_email":
+		if e.complexity.TokenOps.RegisterByEmail == nil {
+			break
+		}
+
+		args, err := ec.field_TokenOps_register_by_email_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.TokenOps.RegisterByEmail(childComplexity, args["input"].(model.UserRegisterByEmail)), true
+
 	case "User.address":
 		if e.complexity.User.Address == nil {
 			break
@@ -814,13 +850,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Email(childComplexity), true
-
-	case "User.email_verification_hash":
-		if e.complexity.User.EmailVerificationHash == nil {
-			break
-		}
-
-		return e.complexity.User.EmailVerificationHash(childComplexity), true
 
 	case "User.email_verification_status":
 		if e.complexity.User.EmailVerificationStatus == nil {
@@ -863,13 +892,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Name(childComplexity), true
-
-	case "User.password":
-		if e.complexity.User.Password == nil {
-			break
-		}
-
-		return e.complexity.User.Password(childComplexity), true
 
 	case "User.telephone_number":
 		if e.complexity.User.TelephoneNumber == nil {
@@ -1130,7 +1152,6 @@ type FileUploadOps {
 	{Name: "graph/igPost.graphql", Input: `type IgPost {
     id: ID!
     caption: String!
-    files: [IgPostFile!]!
 
     created_at: String!
     updated_at: String
@@ -1141,6 +1162,7 @@ type FileUploadOps {
     user_id: ID!
 
     # goField
+    files: [IgPostFile!]! @goField(forceResolver: true)
     user: User! @goField(forceResolver: true)
 }
 
@@ -1209,6 +1231,8 @@ type Query {
 
   ig_post(id: ID!): IgPost! @goField(forceResolver: true)
   ig_posts(limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): IgPostPagination! @goField(forceResolver: true)
+  ig_posts_by_token:  [IgPost!]! @goField(forceResolver: true) @isLogin
+  ig_posts_by_user(user_id: ID!): [IgPost!]! @goField(forceResolver: true)
 
   me: User! @goField(forceResolver: true) @isLogin
 }
@@ -1225,20 +1249,28 @@ type Mutation {
     token: String!
 }
 
+input UserRegisterByEmail {
+    name: String!
+    email: String!
+    password: String!
+    confirm_password: String!
+    address: String
+    telephone_number: String
+}
+
 type TokenOps {
     login(email: String!, password: String!): TokenData! @goField(forceResolver: true)
+    register_by_email(input: UserRegisterByEmail!): TokenData! @goField(forceResolver: true)
 }`, BuiltIn: false},
 	{Name: "graph/user.graphql", Input: `type User {
     id: Int!
     name: String!
-    password: String!
     email: String!
     address: String
     telephone_number: String
     created_at: String!
     updated_at: String
     deleted_at: String
-    email_verification_hash:  String
     email_verification_status: Int!
     google_id: String
     location_code: String
@@ -1606,6 +1638,21 @@ func (ec *executionContext) field_Query_ig_posts_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_ig_posts_by_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1702,6 +1749,21 @@ func (ec *executionContext) field_TokenOps_login_args(ctx context.Context, rawAr
 		}
 	}
 	args["password"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_TokenOps_register_by_email_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UserRegisterByEmail
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUserRegisterByEmail2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserRegisterByEmail(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2545,41 +2607,6 @@ func (ec *executionContext) _IgPost_caption(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _IgPost_files(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "IgPost",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Files, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.IgPostFile)
-	fc.Result = res
-	return ec.marshalNIgPostFile2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostFileᚄ(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _IgPost_created_at(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2747,6 +2774,41 @@ func (ec *executionContext) _IgPost_user_id(ctx context.Context, field graphql.C
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IgPost_files(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "IgPost",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.IgPost().Files(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IgPostFile)
+	fc.Result = res
+	return ec.marshalNIgPostFile2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostFileᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _IgPost_user(ctx context.Context, field graphql.CollectedField, obj *model.IgPost) (ret graphql.Marshaler) {
@@ -4125,6 +4187,103 @@ func (ec *executionContext) _Query_ig_posts(ctx context.Context, field graphql.C
 	return ec.marshalNIgPostPagination2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostPagination(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_ig_posts_by_token(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().IgPostsByToken(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.IgPost); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/davidyap2002/user-go/graph/model.IgPost`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IgPost)
+	fc.Result = res
+	return ec.marshalNIgPost2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ig_posts_by_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ig_posts_by_user_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().IgPostsByUser(rctx, args["user_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.IgPost)
+	fc.Result = res
+	return ec.marshalNIgPost2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4363,6 +4522,48 @@ func (ec *executionContext) _TokenOps_login(ctx context.Context, field graphql.C
 	return ec.marshalNTokenData2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐTokenData(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TokenOps_register_by_email(ctx context.Context, field graphql.CollectedField, obj *model.TokenOps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TokenOps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_TokenOps_register_by_email_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TokenOps().RegisterByEmail(rctx, obj, args["input"].(model.UserRegisterByEmail))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TokenData)
+	fc.Result = res
+	return ec.marshalNTokenData2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐTokenData(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4417,41 +4618,6 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_password(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Password, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4653,38 +4819,6 @@ func (ec *executionContext) _User_deleted_at(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.DeletedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_email_verification_hash(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EmailVerificationHash, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6852,6 +6986,66 @@ func (ec *executionContext) unmarshalInputUpdateUser(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserRegisterByEmail(ctx context.Context, obj interface{}) (model.UserRegisterByEmail, error) {
+	var it model.UserRegisterByEmail
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "confirm_password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirm_password"))
+			it.ConfirmPassword, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "address":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+			it.Address, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "telephone_number":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("telephone_number"))
+			it.TelephoneNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -7064,11 +7258,6 @@ func (ec *executionContext) _IgPost(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "files":
-			out.Values[i] = ec._IgPost_files(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "created_at":
 			out.Values[i] = ec._IgPost_created_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7088,6 +7277,20 @@ func (ec *executionContext) _IgPost(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "files":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._IgPost_files(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "user":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7505,6 +7708,34 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "ig_posts_by_token":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ig_posts_by_token(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "ig_posts_by_user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ig_posts_by_user(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "me":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7591,6 +7822,20 @@ func (ec *executionContext) _TokenOps(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
+		case "register_by_email":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TokenOps_register_by_email(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7623,11 +7868,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "password":
-			out.Values[i] = ec._User_password(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7646,8 +7886,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_updated_at(ctx, field, obj)
 		case "deleted_at":
 			out.Values[i] = ec._User_deleted_at(ctx, field, obj)
-		case "email_verification_hash":
-			out.Values[i] = ec._User_email_verification_hash(ctx, field, obj)
 		case "email_verification_status":
 			out.Values[i] = ec._User_email_verification_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8233,6 +8471,43 @@ func (ec *executionContext) marshalNIgPost2githubᚗcomᚋdavidyap2002ᚋuserᚑ
 	return ec._IgPost(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNIgPost2ᚕᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.IgPost) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNIgPost2ᚖgithubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐIgPost(ctx context.Context, sel ast.SelectionSet, v *model.IgPost) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -8525,6 +8800,11 @@ func (ec *executionContext) marshalNUserPagination2ᚖgithubᚗcomᚋdavidyap200
 		return graphql.Null
 	}
 	return ec._UserPagination(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserRegisterByEmail2githubᚗcomᚋdavidyap2002ᚋuserᚑgoᚋgraphᚋmodelᚐUserRegisterByEmail(ctx context.Context, v interface{}) (model.UserRegisterByEmail, error) {
+	res, err := ec.unmarshalInputUserRegisterByEmail(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

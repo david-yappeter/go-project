@@ -1,7 +1,6 @@
 type IgPost {
     id: ID!
     caption: String!
-    files: [IgPostFile!]!
 
     created_at: String!
     updated_at: String
@@ -12,6 +11,7 @@ type IgPost {
     user_id: ID!
 
     # goField
+    files: [IgPostFile!]! @goField(forceResolver: true)
     user: User! @goField(forceResolver: true)
 }
 

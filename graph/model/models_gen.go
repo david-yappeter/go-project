@@ -66,7 +66,8 @@ type TokenData struct {
 }
 
 type TokenOps struct {
-	Login *TokenData `json:"login"`
+	Login           *TokenData `json:"login"`
+	RegisterByEmail *TokenData `json:"register_by_email"`
 }
 
 type UpdateIgPost struct {
@@ -105,4 +106,13 @@ type UserPagination struct {
 	Scopes    *bool   `json:"scopes"`
 	TotalData int     `json:"total_data"`
 	Nodes     []*User `json:"nodes"`
+}
+
+type UserRegisterByEmail struct {
+	Name            string  `json:"name"`
+	Email           string  `json:"email"`
+	Password        string  `json:"password"`
+	ConfirmPassword string  `json:"confirm_password"`
+	Address         *string `json:"address"`
+	TelephoneNumber *string `json:"telephone_number"`
 }

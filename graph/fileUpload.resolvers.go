@@ -13,11 +13,11 @@ import (
 )
 
 func (r *fileUploadResolver) ViewLink(ctx context.Context, obj *model.FileUpload) (string, error) {
-	return service.FileUploadViewLink(ctx, obj)
+	return service.GdriveViewLink(ctx, obj.FileID)
 }
 
 func (r *fileUploadResolver) DownloadLink(ctx context.Context, obj *model.FileUpload) (string, error) {
-	return service.FileUploadDownloadLink(ctx, obj)
+	return service.GdriveDownloadLink(ctx, obj.FileID)
 }
 
 func (r *fileUploadOpsResolver) UploadSingle(ctx context.Context, obj *model.FileUploadOps, file graphql.Upload) (*model.FileUpload, error) {

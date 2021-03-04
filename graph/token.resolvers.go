@@ -15,6 +15,10 @@ func (r *tokenOpsResolver) Login(ctx context.Context, obj *model.TokenOps, email
 	return service.UserTokenCreateByEmail(ctx, email, password)
 }
 
+func (r *tokenOpsResolver) RegisterByEmail(ctx context.Context, obj *model.TokenOps, input model.UserRegisterByEmail) (*model.TokenData, error) {
+	return service.UserRegisterByEmail(ctx, input)
+}
+
 // TokenOps returns generated.TokenOpsResolver implementation.
 func (r *Resolver) TokenOps() generated.TokenOpsResolver { return &tokenOpsResolver{r} }
 

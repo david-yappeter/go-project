@@ -5,18 +5,18 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/graph/model"
+	"github.com/davidyap2002/user-go/service"
 )
 
 func (r *igPostFileResolver) ViewLink(ctx context.Context, obj *model.IgPostFile) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.GdriveViewLink(ctx, obj.FileID)
 }
 
 func (r *igPostFileResolver) DownloadLink(ctx context.Context, obj *model.IgPostFile) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.GdriveDownloadLink(ctx, obj.FileID)
 }
 
 // IgPostFile returns generated.IgPostFileResolver implementation.

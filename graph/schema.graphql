@@ -16,6 +16,8 @@ type Query {
 
   ig_post(id: ID!): IgPost! @goField(forceResolver: true)
   ig_posts(limit: Int, page: Int, asc: Boolean, sort_by: String,  scopes: Boolean): IgPostPagination! @goField(forceResolver: true)
+  ig_posts_by_token:  [IgPost!]! @goField(forceResolver: true) @isLogin
+  ig_posts_by_user(user_id: ID!): [IgPost!]! @goField(forceResolver: true)
 
   me: User! @goField(forceResolver: true) @isLogin
 }

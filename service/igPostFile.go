@@ -179,3 +179,23 @@ func IgPostFileTotalDataPagination(ctx context.Context, limit *int, page *int, a
 
 	return int(count), nil
 }
+
+//IgPostFileGetByArrayPostID Dataloader
+func IgPostFileGetByArrayPostID(ctx context.Context, postIds []int) ([]*model.IgPostFile, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	var igPostFiles []*model.IgPostFile
+
+	query := db.Table("ig_post_file")
+
+	err := query.Where("post_id IN (?)", postIds).Find(&igPostFiles).Error
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return igPostFiles, nil
+}
