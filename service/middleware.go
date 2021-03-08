@@ -54,8 +54,8 @@ func Middleware() func(http.Handler) http.Handler {
 			// and call the next with our new context
 			r = r.WithContext(ctx)
 
-			// Enable CORS
-			enableCors(&w)
+			// // Enable CORS
+			// enableCors(&w)
 
 			next.ServeHTTP(w, r)
 		})
@@ -68,7 +68,7 @@ func ForContext(ctx context.Context) *UserClaims {
 	return raw
 }
 
-// Enable Cross Origin Request
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-}
+// // Enable Cross Origin Request
+// func enableCors(w *http.ResponseWriter) {
+// 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+// }

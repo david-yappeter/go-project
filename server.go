@@ -10,6 +10,7 @@ import (
 	"github.com/davidyap2002/user-go/graph"
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/service"
+	"github.com/rs/cors"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -40,10 +41,25 @@ func main() {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	router.Handle("/query", srv)
-	router.HandleFunc("/auth/google", service.GoogleOauth2RedirectLink)
-	router.HandleFunc("/auth/google/callback", service.GoogleOauth2ParseCallback)
-	router.HandleFunc("/verify/email", service.EmailVerification)
+	router.Handle("/query", cors.New(cors.Options{
+		AllowedHeaders: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+	}).Handler(srv))
+
+	router.Handle("/auth/google", cors.New(cors.Options{
+		AllowedHeaders: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+	}).Handler(http.HandlerFunc(service.GoogleOauth2RedirectLink)))
+
+	router.Handle("/auth/google/callback", cors.New(cors.Options{
+		AllowedHeaders: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+	}).Handler(http.HandlerFunc(service.GoogleOauth2ParseCallback)))
+
+	router.Handle("/verify/email", cors.New(cors.Options{
+		AllowedHeaders: []string{"*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+	}).Handler(http.HandlerFunc(service.EmailVerification)))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
