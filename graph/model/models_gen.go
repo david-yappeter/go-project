@@ -91,11 +91,12 @@ type UpdateUser struct {
 }
 
 type UserOps struct {
-	Create        *User  `json:"create"`
-	Update        *User  `json:"update"`
-	SoftDelete    string `json:"soft_delete"`
-	RestoreDelete string `json:"restore_delete"`
-	Delete        string `json:"delete"`
+	Create               *User  `json:"create"`
+	Update               *User  `json:"update"`
+	SoftDelete           string `json:"soft_delete"`
+	RestoreDelete        string `json:"restore_delete"`
+	Delete               string `json:"delete"`
+	ChangeProfilePicture string `json:"change_profile_picture"`
 }
 
 type UserPagination struct {

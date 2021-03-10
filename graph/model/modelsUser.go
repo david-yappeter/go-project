@@ -11,6 +11,8 @@ type User struct {
 	CreatedAt               string  `gorm:"type:timestamp;not null"`
 	UpdatedAt               *string `gorm:"type:timestamp;null;default:null"`
 	DeletedAt               *string `gorm:"type:timestamp;null;default:null"`
+	Avatar                  *string `gorm:"type:text;null;default:null"`
+	IsAdmin                 int     `gorm:"type:int;not null;default: 0"`
 	EmailVerificationHash   *string `gorm:"type:text;null;default:null"`
 	EmailVerificationStatus int     `gorm:"type:int;not null;default:0"`
 	GoogleID                *string `gorm:"type:text;null;default:null"`

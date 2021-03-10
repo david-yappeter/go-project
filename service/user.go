@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/davidyap2002/user-go/api"
 	config "github.com/davidyap2002/user-go/config"
 	model "github.com/davidyap2002/user-go/graph/model"
@@ -55,6 +56,8 @@ func UserCreate(ctx context.Context, input model.NewUser) (*model.User, error) {
 		TelephoneNumber:       input.TelephoneNumber,
 		CreatedAt:             timeNow,
 		EmailVerificationHash: &randomHash,
+		IsAdmin:               0,
+		Avatar:                nil,
 	}
 
 	err = db.Table("user").Create(&user).Error
@@ -93,6 +96,8 @@ func UserCreateBatch(ctx context.Context, input []*model.NewUser) ([]*model.User
 			TelephoneNumber:       val.TelephoneNumber,
 			CreatedAt:             timeNow,
 			EmailVerificationHash: &randomHash,
+			IsAdmin:               0,
+			Avatar:                nil,
 		}
 
 		userBatch = append(userBatch, &user)
@@ -509,4 +514,39 @@ func UserRegisterByEmail(ctx context.Context, input model.UserRegisterByEmail) (
 	}
 
 	return UserTokenCreateByEmail(ctx, input.Email, input.Password)
+}
+
+//UserChangeProfilePicture Change Profile Picture
+func UserChangeProfilePicture(ctx context.Context, file graphql.Upload) (string, error) {
+	uploaded, err := UploadFile(ctx, file)
+
+	if err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
+	user := ForContext(ctx)
+	timeNow := tools.TimeUTC()
+	viewLink, err := GdriveViewLink(ctx, uploaded.FileID)
+
+	if err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	err = db.Table("user").Where("id = ?", user.ID).Updates(map[string]interface{}{
+		"updated_at": timeNow,
+		"avatar":     viewLink,
+	}).Error
+
+	if err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
+	return viewLink, nil
 }

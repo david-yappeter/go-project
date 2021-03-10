@@ -5,7 +5,9 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/davidyap2002/user-go/dataloader"
 	"github.com/davidyap2002/user-go/graph/generated"
 	"github.com/davidyap2002/user-go/graph/model"
@@ -34,6 +36,10 @@ func (r *userOpsResolver) RestoreDelete(ctx context.Context, obj *model.UserOps,
 
 func (r *userOpsResolver) Delete(ctx context.Context, obj *model.UserOps, id int) (string, error) {
 	return service.UserHardDelete(ctx, id)
+}
+
+func (r *userOpsResolver) ChangeProfilePicture(ctx context.Context, obj *model.UserOps, file graphql.Upload) (string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *userPaginationResolver) TotalData(ctx context.Context, obj *model.UserPagination) (int, error) {

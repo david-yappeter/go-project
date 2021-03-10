@@ -37,6 +37,7 @@ func main() {
 
 	c := generated.Config{Resolvers: &graph.Resolver{}}
 	c.Directives.IsLogin = directives.IsLogin
+	c.Directives.IsAdmin = directives.IsAdmin
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 

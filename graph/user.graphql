@@ -7,6 +7,8 @@ type User {
     created_at: String!
     updated_at: String
     deleted_at: String
+    avatar: String
+    is_admin: Int!
     email_verification_status: Int!
     google_id: String
     location_code: String
@@ -46,9 +48,11 @@ input UpdateUser {
 }
 
 type UserOps {
-    create(input: NewUser!): User! @goField(forceResolver: true)
-    update(input: UpdateUser!): User! @goField(forceResolver: true) @isLogin
-    soft_delete(id: Int!): String! @goField(forceResolver: true) @isLogin
-    restore_delete(id: Int!): String! @goField(forceResolver: true) @isLogin
-    delete(id: Int!): String! @goField(forceResolver: true) @isLogin
+    create(input: NewUser!): User! @goField(forceResolver: true) @isAdmin
+    update(input: UpdateUser!): User! @goField(forceResolver: true) @isAdmin
+    soft_delete(id: Int!): String! @goField(forceResolver: true) @isAdmin
+    restore_delete(id: Int!): String! @goField(forceResolver: true) @isAdmin
+    delete(id: Int!): String! @goField(forceResolver: true) @isAdmin
+
+    change_profile_picture(file: Upload!): String! @goField(forceResolver: true) @isLogin
 }
